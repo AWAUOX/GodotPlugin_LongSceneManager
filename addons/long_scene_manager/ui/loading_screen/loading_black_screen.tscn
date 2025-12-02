@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://bo541wxqhhnl4"]
 
-[ext_resource type="Script" uid="uid://l71ryajpwdgd" path="res://addons/basic_scene_manager/ui/loading_screen/loading_black_screen.gd" id="1_jbrs5"]
+[ext_resource type="Script" uid="uid://l71ryajpwdgd" path="res://addons/long_scene_manager/ui/loading_screen/loading_black_screen.gd" id="1_jbrs5"]
 
 [node name="BlackScreen" type="CanvasLayer"]
 script = ExtResource("1_jbrs5")

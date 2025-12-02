@@ -17,7 +17,7 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-LongSceneManager="*res://addons/basic_scene_manager/autoload/scene_manager.gd"
+LongSceneManager="*res://addons/long_scene_manager/autoload/scene_manager.gd"
 
 [display]
 

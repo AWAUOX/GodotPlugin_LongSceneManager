@@ -74,8 +74,7 @@ func _enter_tree() -> void:
 
 func _update_info_label():
 	#"""更新显示信息"""
-	var cache_info = LongSceneManager.get_cache_info()
-	var current_path = LongSceneManager.get_current_scene().scene_file_path if LongSceneManager.get_current_scene() else "Unknown"
+	var cache_info:Dictionary = LongSceneManager.get_cache_info()
 	
 	label_info.text = """
     当前场景: Main Scene

@@ -43,11 +43,13 @@ func _update_info_label():
     上一个场景: {previous}
     缓存数量: {cache_count}/{cache_max}
     预加载状态: {preload_state}
+	缓存场景列表: {cache_list}
 	""".format({
 		"previous": LongSceneManager.get_previous_scene_path(),
-		"cache_count": cache_info.size,
+		"cache_count": cache_info.instance_cache_size,
 		"cache_max": cache_info.max_size,
-		"preload_state": "加载中" if LongSceneManager.get_loading_progress(TEST_SCENE_2_PATH) < 1.0 else "未加载"
+		"preload_state": "加载中" if LongSceneManager.get_loading_progress(TEST_SCENE_2_PATH) < 1.0 else "未加载",
+		"cache_list": ",\n ".join(cache_info.access_order)
 	})
 
 func _on_main_pressed():

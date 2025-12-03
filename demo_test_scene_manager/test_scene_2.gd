@@ -53,11 +53,13 @@ func _update_info():
     上一个场景: {previous}
     缓存数量: {cache_count}/{cache_max}
     主场景预加载: {preload_progress}%
+	缓存场景列表: {cache_list}
 	""".format({
 		"previous": LongSceneManager.get_previous_scene_path(),
-		"cache_count": cache_info.size,
+		"cache_count": cache_info.instance_cache_size,
 		"cache_max": cache_info.max_size,
-		"preload_progress": round(LongSceneManager.get_loading_progress(MAIN_SCENE_PATH) * 100)
+		"preload_progress": round(LongSceneManager.get_loading_progress(MAIN_SCENE_PATH) * 100),
+		"cache_list": ",\n ".join(cache_info.access_order)
 	})
 
 func _on_main_pressed():

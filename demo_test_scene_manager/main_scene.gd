@@ -84,7 +84,7 @@ func _update_info_label():
 	
 	""".format({
 		"previous": LongSceneManager.get_previous_scene_path(),
-		"cache_count": cache_info.size,
+		"cache_count": cache_info.instance_cache_size,
 		"cache_max": cache_info.max_size,
 		"cache_list": ",\n ".join(cache_info.access_order)
 	})

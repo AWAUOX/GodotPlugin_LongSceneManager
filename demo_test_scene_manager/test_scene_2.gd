@@ -36,6 +36,7 @@ func _enter_tree() -> void:
 		_update_info()
 
 func _process(delta):
+	_update_info()
 	#"""每帧更新预加载进度"""
 	var progress = LongSceneManager.get_loading_progress(MAIN_SCENE_PATH)
 	progress_bar.value = progress * 100
@@ -44,22 +45,23 @@ func _process(delta):
 		label_info.text = "预加载主场景进度: " + str(round(progress * 100)) + "%"
 
 func _update_info():
+	#LongSceneManager.print_debug_info()
 	#"""更新显示信息"""
 	var cache_info = LongSceneManager.get_cache_info()
 	progress_bar.value = 0
 	
 	label_info.text = """
-    当前场景: Test Scene 2
+    当前场景: Main Scene
     上一个场景: {previous}
-    缓存数量: {cache_count}/{cache_max}
-    主场景预加载: {preload_progress}%
-	缓存场景列表: {cache_list}
+    缓存实例场景数: {cache_count}/{cache_max}
+    缓存实例场景列表: {cache_list}
+	预加载资源缓存数量: {preload_cache_size}
 	""".format({
 		"previous": LongSceneManager.get_previous_scene_path(),
 		"cache_count": cache_info.instance_cache_size,
 		"cache_max": cache_info.max_size,
-		"preload_progress": round(LongSceneManager.get_loading_progress(MAIN_SCENE_PATH) * 100),
-		"cache_list": ",\n ".join(cache_info.access_order)
+		"cache_list": ",\n ".join(cache_info.access_order),
+		"preload_cache_size": LongSceneManager.preload_resource_cache.size(),
 	})
 
 func _on_main_pressed():

@@ -30,27 +30,33 @@ func _ready():
 	LongSceneManager.scene_switch_started.connect(_on_scene_switch_started)
 	LongSceneManager.scene_switch_completed.connect(_on_scene_switch_completed)
 	
+	
 func _enter_tree() -> void:
 	if not is_first_enter:
 		_update_info_label()
+		
+func _process(delta: float) -> void:
+	_update_info_label()
 
 func _update_info_label():
+	#LongSceneManager.print_debug_info()
 	#"""更新显示信息"""
 	var cache_info = LongSceneManager.get_cache_info()
 	
 	label_info.text = """
-    当前场景: Test Scene 1
+    当前场景: Main Scene
     上一个场景: {previous}
-    缓存数量: {cache_count}/{cache_max}
-    预加载状态: {preload_state}
-	缓存场景列表: {cache_list}
+    缓存实例场景数: {cache_count}/{cache_max}
+    缓存实例场景列表: {cache_list}
+	预加载资源缓存数量: {preload_cache_size}
 	""".format({
 		"previous": LongSceneManager.get_previous_scene_path(),
 		"cache_count": cache_info.instance_cache_size,
 		"cache_max": cache_info.max_size,
-		"preload_state": "加载中" if LongSceneManager.get_loading_progress(TEST_SCENE_2_PATH) < 1.0 else "未加载",
-		"cache_list": ",\n ".join(cache_info.access_order)
+		"cache_list": ",\n ".join(cache_info.access_order),
+		"preload_cache_size": LongSceneManager.preload_resource_cache.size(),
 	})
+	
 
 func _on_main_pressed():
 	#"""切换回主场景"""

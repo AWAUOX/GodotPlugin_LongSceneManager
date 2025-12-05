@@ -25,7 +25,7 @@ namespace LongSceneManagerCs
 		#region 常量和枚举
 		
 		// 默认加载屏幕的资源路径
-		public const string DefaultLoadScreenPath = "res://addons/long_scene_manager/ui/loading_screen/loading_black_screen.tscn";
+		public const string DefaultLoadScreenPath = "res://addons/long_scene_manager/ui/loading_screen/loading_black_screen_cs.tscn";
 		
 		// 场景加载状态枚举
 		public enum LoadState

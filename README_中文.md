@@ -4,6 +4,15 @@
 
 Long Scene Manager 是一个 Godot 插件，旨在简化和优化场景切换过程，特别是对于需要长时间加载的复杂场景。它通过提供异步场景加载、缓存机制和可定制的加载界面来改善用户体验。
 
+**注意：** 本文档仍在更新中。中文注解已经完整实现，但英文注解尚未完善。
+
+## 图标
+
+插件在 `image_icon` 文件夹中包含以下图标：
+- ![主场景图标](addons/long_scene_manager/image_icon/main_scene.png) 主场景
+- ![场景1图标](addons/long_scene_manager/image_icon/scene1.png) 场景1
+- ![场景2图标](addons/long_scene_manager/image_icon/scene2.png) 场景2
+
 ## 功能特性
 
 - **异步场景切换**：使用 `await` 实现非阻塞式场景切换
@@ -20,6 +29,29 @@ Long Scene Manager 是一个 Godot 插件，旨在简化和优化场景切换过
 2. 在 Godot 中启用插件：
    - 转到 `Project → Project Settings → Plugins`
    - 找到 "Long Scene Manager" 并将其状态设置为 "Active"
+
+## 插件配置
+
+该插件实现为全局自动加载单例。根据您想要使用 GDScript 还是 C# 实现，您需要在 `plugin.cfg` 文件中更改脚本，并在自动加载设置中核对路径：
+
+1. 打开 `addons/long_scene_manager/plugin.cfg`
+2. 修改 `script` 条目以指向 GDScript 或 C# 实现：
+   - 对于 GDScript：`script="res://addons/long_scene_manager/autoload/long_scene_manager.gd"`
+   - 对于 C#：`script="res://addons/long_scene_manager/autoload/LongSceneManagerCs.cs"`
+3. 在项目设置 → 自动加载中，确认为 `LongSceneManager` 单例注册了正确的路径
+
+## 缓存机制
+
+插件实现了双层缓存系统：
+
+1. **实例缓存**：存储完全实例化的场景节点，这些节点当前未处于活动状态但在内存中保留以便快速切换
+2. **预加载资源缓存**：存储已加载的 PackedScene 资源，以便更快地实例化
+
+两种缓存都实现了 LRU（最近最少使用）淘汰策略，具有可配置的最大大小：
+- 实例缓存：由 `max_cache_size` 控制（默认：8）
+- 预加载资源缓存：由 `max_preload_resource_cache_size` 控制（默认：20）
+
+当缓存达到最大容量时，最近最少使用的项目会被自动移除以为新项目腾出空间。
 
 ## 使用方法
 

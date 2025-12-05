@@ -4,6 +4,8 @@
 
 The Long Scene Manager is a Godot plugin designed to simplify and optimize the scene switching process, especially for complex scenes that require long loading times. It improves user experience by providing asynchronous scene loading, caching mechanisms, and customizable loading interfaces.
 
+**Note:** This documentation is still being updated. While the Chinese annotations are complete, the English annotations are not yet fully implemented.
+
 ## Features
 
 - **Asynchronous Scene Switching**: Non-blocking scene transitions using `await`
@@ -14,12 +16,42 @@ The Long Scene Manager is a Godot plugin designed to simplify and optimize the s
 - **LRU Cache Policy**: Implements Least Recently Used cache eviction strategy
 - **Debug Support**: Internal state printing for diagnostics
 
+## Icons
+
+The plugin includes the following icons in the `image_icon` folder:
+- ![Main Scene Icon](addons/long_scene_manager/image_icon/main_scene.png) Main Scene
+- ![Scene 1 Icon](addons/long_scene_manager/image_icon/scene1.png) Scene 1
+- ![Scene 2 Icon](addons/long_scene_manager/image_icon/scene2.png) Scene 2
+
 ## Installation
 
 1. Copy the `addons/long_scene_manager` folder into your project's `addons` folder
 2. Enable the plugin in Godot:
    - Go to `Project → Project Settings → Plugins`
    - Find "Long Scene Manager" and set its status to "Active"
+
+## Plugin Configuration
+
+This plugin is implemented as a global autoload singleton. Depending on whether you want to use GDScript or C# implementation, you need to change the script in `plugin.cfg` file and verify the path in the Autoload settings:
+
+1. Open `addons/long_scene_manager/plugin.cfg`
+2. Modify the `script` entry to point to either the GDScript or C# implementation:
+   - For GDScript: `script="res://addons/long_scene_manager/autoload/long_scene_manager.gd"`
+   - For C#: `script="res://addons/long_scene_manager/autoload/LongSceneManagerCs.cs"`
+3. In Project Settings → Autoload, verify that the correct path is registered for the `LongSceneManager` singleton
+
+## Caching Mechanism
+
+The plugin implements a dual-layer caching system:
+
+1. **Instance Cache**: Stores fully instantiated scene nodes that are not currently active but kept in memory for quick switching
+2. **Preload Resource Cache**: Stores loaded PackedScene resources for even faster instantiation
+
+Both caches implement an LRU (Least Recently Used) eviction policy with configurable maximum sizes:
+- Instance cache: Controlled by `max_cache_size` (default: 8)
+- Preload resource cache: Controlled by `max_preload_resource_cache_size` (default: 20)
+
+When a cache reaches its maximum capacity, the least recently used items are automatically removed to make space for new ones.
 
 ## Usage
 

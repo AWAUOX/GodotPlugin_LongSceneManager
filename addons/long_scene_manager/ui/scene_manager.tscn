@@ -1,3 +1,6 @@
-[gd_scene format=3 uid="uid://b4ou7w5i2tkii"]
+[gd_scene load_steps=2 format=3 uid="uid://b4ou7w5i2tkii"]
+
+[ext_resource type="Script" uid="uid://b1wsglrtdrf6d" path="res://addons/long_scene_manager/autoload/long_scene_manager.gd" id="1_irrvp"]
 
 [node name="SceneManager" type="Node"]
+script = ExtResource("1_irrvp")

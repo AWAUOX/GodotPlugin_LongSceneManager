@@ -7,7 +7,7 @@ func _enable_plugin() -> void:
 	# 添加全局单例
 	add_autoload_singleton(
 		AUTOLOAD_NAME,
-        "res://addons/long_scene_manager/autoload/scene_manager.gd"
+        "res://addons/long_scene_manager/autoload/long_scene_manager.gd"
 	)
 
 func _disable_plugin() -> void:
@@ -24,7 +24,7 @@ func _enter_tree() -> void:
 		
 		#choose gdscript or c# 
 		# preload("res://addons/long_scene_manager/autoload/LongSceneManagerCs.cs"),
-		preload("res://addons/long_scene_manager/autoload/scene_manager.gd"),
+		preload("res://addons/long_scene_manager/autoload/long_scene_manager.gd"),
 
 		#preload("res://icon.svg")
 		icon

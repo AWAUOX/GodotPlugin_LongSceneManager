@@ -1,4 +1,4 @@
-# scene_manager.gd
+# long_scene_manager.gd
 extends Node
 
 # 全局场景管理器插件
@@ -7,7 +7,7 @@ extends Node
 
 # ==================== 常量和枚举 ====================
 
-const DEFAULT_LOAD_SCREEN_PATH = "res://addons/long_scene_manager/ui/loading_screen/loading_black_screen.tscn"
+const DEFAULT_LOAD_SCREEN_PATH = "res://addons/long_scene_manager/ui/loading_screen/GDscript/loading_black_screen.tscn"
 
 enum LoadState {
 	NOT_LOADED,
@@ -263,6 +263,11 @@ func clear_cache() -> void:
 		var index = cache_access_order.find(scene_path)
 		if index != -1:
 			cache_access_order.remove_at(index)
+	
+	# 重置加载状态，确保可以重新预加载场景
+	loading_scene_path = ""
+	loading_state = LoadState.NOT_LOADED
+	loading_resource = null
 	
 	print("[SceneManager] 缓存已清空")
 

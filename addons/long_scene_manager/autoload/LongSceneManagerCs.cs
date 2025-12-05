@@ -25,7 +25,7 @@ namespace LongSceneManagerCs
 		#region 常量和枚举
 		
 		// 默认加载屏幕的资源路径
-		public const string DefaultLoadScreenPath = "res://addons/long_scene_manager/ui/loading_screen/loading_black_screen_cs.tscn";
+		public const string DefaultLoadScreenPath = "res://addons/long_scene_manager/ui/loading_screen/CSharp/loading_black_screen_cs.tscn";
 		
 		// 场景加载状态枚举
 		public enum LoadState
@@ -475,6 +475,11 @@ namespace LongSceneManagerCs
 					_cacheAccessOrder.RemoveAt(index);
 				}
 			}
+			
+			// 重置加载状态，确保可以重新预加载场景
+			_loadingScenePath = "";
+			_loadingState = LoadState.NotLoaded;
+			_loadingResource = null;
 			
 			GD.Print("[SceneManager] 缓存已清空");
 		}

@@ -1,5 +1,5 @@
 
-# black_screen.gd
+# loading_black_screen.gd
 extends CanvasLayer
 class_name BlackScreen
 

@@ -2,7 +2,7 @@ using Godot;
 using System;
 using LongSceneManagerCs;
 
-public partial class main_scene_cs : Control
+public partial class MainSceneCs : Control
 {
 	// 场景路径常量
 	private const string TEST_SCENE_1_PATH = "res://demo_test_scene_manager/test_scene_1.tscn";

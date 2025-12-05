@@ -2,7 +2,7 @@ using Godot;
 using System;
 using LongSceneManagerCs;
 
-public partial class test_scene_1_cs : Node2D
+public partial class TestScene1Cs : Node2D
 {
 	private const string MAIN_SCENE_PATH = "res://demo_test_scene_manager/main_scene.tscn";
 	private const string TEST_SCENE_2_PATH = "res://demo_test_scene_manager/test_scene_2.tscn";

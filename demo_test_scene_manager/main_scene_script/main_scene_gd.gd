@@ -39,9 +39,10 @@ func _enter_tree() -> void:
 	if not is_first_enter:
 		_update_info_label()
 		
-func _process(delta: float) -> void:
+func _process(delta:float) -> void:
 	_update_info_label()
-		
+
+
 
 
 func _update_info_label():

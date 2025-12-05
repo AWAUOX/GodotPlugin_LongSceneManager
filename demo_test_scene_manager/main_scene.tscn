@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://dlbvo51yl80p"]
 
-[ext_resource type="Script" uid="uid://dek6tmgcudrvd" path="res://demo_test_scene_manager/main_scene.gd" id="1_7t0ds"]
+[ext_resource type="Script" uid="uid://deyiewiktcesh" path="res://demo_test_scene_manager/main_scene_cs.cs" id="1_7t0ds"]
 
 [node name="MainScene" type="Control"]
 layout_mode = 3
@@ -61,9 +61,3 @@ text = "Label_Info"
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3
-
-[connection signal="pressed" from="VBoxContainer/Button_Scene1" to="." method="_on_button_pressed"]
-[connection signal="pressed" from="VBoxContainer/Button_Scene2" to="." method="_on_button_pressed"]
-[connection signal="pressed" from="VBoxContainer/Button_Preload1" to="." method="_on_button_pressed"]
-[connection signal="pressed" from="VBoxContainer/Button_Preload2" to="." method="_on_button_pressed"]
-[connection signal="pressed" from="VBoxContainer/Button_ClearCache" to="." method="_on_button_pressed"]

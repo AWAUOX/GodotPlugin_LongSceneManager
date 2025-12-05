@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://mbi1fk1dvsti"]
 
-[ext_resource type="Script" uid="uid://bqj80ryc64jj1" path="res://demo_test_scene_manager/test_scene_1.gd" id="1_xftt1"]
+[ext_resource type="Script" uid="uid://k82svqwo1nw0" path="res://demo_test_scene_manager/test_scene_1_cs.cs" id="1_xftt1"]
 
 [node name="TestScene1" type="Node2D"]
 script = ExtResource("1_xftt1")
@@ -43,7 +43,3 @@ text = "Button_Back"
 custom_minimum_size = Vector2(200, 200)
 layout_mode = 2
 text = "Label_Info"
-
-[connection signal="pressed" from="VBoxContainer/Button_Main" to="." method="_on_main_pressed"]
-[connection signal="pressed" from="VBoxContainer/Button_Scene2" to="." method="_on_scene2_pressed"]
-[connection signal="pressed" from="VBoxContainer/Button_Back" to="." method="_on_back_pressed"]

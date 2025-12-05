@@ -1,5 +1,7 @@
+
+# 原始 GDScript 版本代码
+# ========================
 extends Node2D
-# 测试场景1脚本
 
 const MAIN_SCENE_PATH = "res://demo_test_scene_manager/main_scene.tscn"
 const TEST_SCENE_2_PATH = "res://demo_test_scene_manager/test_scene_2.tscn"
@@ -16,9 +18,9 @@ func _ready():
 	print("=== Test Scene 1 Loaded ===")
 	
 	# 连接按钮信号
-	#button_main.pressed.connect(_on_main_pressed)
-	#button_scene2.pressed.connect(_on_scene2_pressed)
-	#button_back.pressed.connect(_on_back_pressed)
+	button_main.pressed.connect(_on_main_pressed)
+	button_scene2.pressed.connect(_on_scene2_pressed)
+	button_back.pressed.connect(_on_back_pressed)
 	
 	# 更新信息标签
 	_update_info_label()
@@ -78,3 +80,4 @@ func _on_scene_switch_started(from_scene: String, to_scene: String):
 
 func _on_scene_switch_completed(scene_path: String):
 	print("场景1 - 切换完成: ", scene_path)
+

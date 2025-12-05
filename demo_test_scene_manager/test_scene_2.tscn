@@ -1,9 +1,9 @@
 [gd_scene load_steps=2 format=3 uid="uid://d2enyga3f20ol"]
 
-[ext_resource type="Script" uid="uid://dg068op6rbfob" path="res://demo_test_scene_manager/test_scene_2.gd" id="1_y3mkk"]
+[ext_resource type="Script" uid="uid://8q0nd2taod7o" path="res://demo_test_scene_manager/test_scene_2_cs.cs" id="1_w6x54"]
 
 [node name="TestScene2" type="Node2D"]
-script = ExtResource("1_y3mkk")
+script = ExtResource("1_w6x54")
 
 [node name="TextureRect" type="ColorRect" parent="."]
 offset_right = 1281.0
@@ -49,7 +49,3 @@ offset_left = 159.0
 offset_top = 559.0
 offset_right = 1136.0
 offset_bottom = 586.0
-
-[connection signal="pressed" from="VBoxContainer/Button_Main" to="." method="_on_main_pressed"]
-[connection signal="pressed" from="VBoxContainer/Button_Scene1" to="." method="_on_scene1_pressed"]
-[connection signal="pressed" from="VBoxContainer/Button_PreloadMain" to="." method="_on_preload_main_pressed"]

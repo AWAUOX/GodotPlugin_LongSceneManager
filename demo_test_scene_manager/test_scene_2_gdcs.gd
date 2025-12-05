@@ -1,5 +1,6 @@
+# 测试场景2脚本 (C#版本接口)
+
 extends Node2D
-# 测试场景2脚本
 
 const MAIN_SCENE_PATH = "res://demo_test_scene_manager/main_scene.tscn"
 const TEST_SCENE_1_PATH = "res://demo_test_scene_manager/test_scene_1.tscn"
@@ -10,23 +11,26 @@ const TEST_SCENE_1_PATH = "res://demo_test_scene_manager/test_scene_1.tscn"
 @onready var label_info: Label = $VBoxContainer/Label_Info
 @onready var progress_bar: ProgressBar = $ProgressBar
 
+
+
 var is_first_enter:bool = true
 
 
 func _ready():
-	print("=== Test Scene 2 Loaded ===")
+	print("=== Test Scene 2 Loaded (C# Interface) ===")
 	set_process(false)
 	# 连接按钮信号
-	#button_main.pressed.connect(_on_main_pressed)
-	#button_scene1.pressed.connect(_on_scene1_pressed)
-	#button_preload_main.pressed.connect(_on_preload_main_pressed)
+	button_main.pressed.connect(_on_main_pressed)
+	button_scene1.pressed.connect(_on_scene1_pressed)
+	button_preload_main.pressed.connect(_on_preload_main_pressed)
 	is_first_enter = false
 	# 更新信息
 	_update_info()
 	
 	# 连接SceneManager信号
-	LongSceneManager.scene_switch_started.connect(_on_scene_switch_started)
-	LongSceneManager.scene_switch_completed.connect(_on_scene_switch_completed)
+	LongSceneManagerCs.SceneSwitchStarted.connect(_on_scene_switch_started)
+	LongSceneManagerCs.SceneSwitchCompleted.connect(_on_scene_switch_completed)
+	LongSceneManagerCs.ScenePreloadCompleted.connect(_on_scene_preload_completed)
 	
 func _enter_tree() -> void:
 	set_process(false)
@@ -35,17 +39,17 @@ func _enter_tree() -> void:
 
 func _process(delta):
 	_update_info()
-	#"""每帧更新预加载进度"""
-	var progress = LongSceneManager.get_loading_progress(MAIN_SCENE_PATH)
+	#"每帧更新预加载进度"""
+	var progress = LongSceneManagerCs.GetLoadingProgress(MAIN_SCENE_PATH)
 	progress_bar.value = progress * 100
 	
 	if progress < 1.0 and progress > 0:
 		label_info.text = "预加载主场景进度: " + str(round(progress * 100)) + "%"
 
 func _update_info():
-	#LongSceneManager.print_debug_info()
-	#"""更新显示信息"""
-	var cache_info = LongSceneManager.get_cache_info()
+	#LongSceneManagerCs.PrintDebugInfo()
+	#"更新显示信息"""
+	var cache_info = LongSceneManagerCs.GetCacheInfo()
 	progress_bar.value = 0
 	
 	label_info.text = """
@@ -56,33 +60,36 @@ func _update_info():
 	预加载资源缓存数量: {preload_cache_size}
 	预加载缓存最大数值: {preload_cache_max}
 	""".format({
-		"previous": LongSceneManager.get_previous_scene_path(),
+		"previous": LongSceneManagerCs.GetPreviousScenePath(),
 		"cache_count": cache_info.instance_cache_size,
 		"cache_max": cache_info.max_size,
 		"cache_list": ",\n ".join(cache_info.access_order),
-		"preload_cache_size": LongSceneManager.preload_resource_cache.size(),
-		"preload_cache_max": LongSceneManager.max_preload_resource_cache_size
+		"preload_cache_size": cache_info.preload_resource_cache.size(),
+		"preload_cache_max": cache_info.max_preload_resource_cache_size
 	})
 
 func _on_main_pressed():
-	#"""切换回主场景"""
-	print("切换回主场景")
-	await LongSceneManager.switch_scene(MAIN_SCENE_PATH, true, "")
+	#"切换回主场景"""
+	print("切换回主场景 (C# Interface)")
+	LongSceneManagerCs.SwitchSceneGD(MAIN_SCENE_PATH, true, "")
 
 func _on_scene1_pressed():
-	#"""切换到场景1"""
-	print("切换到场景1")
-	await LongSceneManager.switch_scene(TEST_SCENE_1_PATH, true, "")
+	#"切换到场景1"""
+	print("切换到场景1 (C# Interface)")
+	LongSceneManagerCs.SwitchSceneGD(TEST_SCENE_1_PATH, true, "")
 
 func _on_preload_main_pressed():
-	#"""预加载主场景"""
-	print("预加载主场景")
+	#"预加载主场景"""
+	print("预加载主场景 (C# Interface)")
 	set_process(true)
-	LongSceneManager.preload_scene(MAIN_SCENE_PATH)
-	_update_info()
+	LongSceneManagerCs.PreloadSceneGD(MAIN_SCENE_PATH)
 
 func _on_scene_switch_started(from_scene: String, to_scene: String):
-	print("场景2 - 切换开始: ", from_scene, " -> ", to_scene)
+	print("场景2 - 切换开始 (C# Interface): ", from_scene, " -> ", to_scene)
 
 func _on_scene_switch_completed(scene_path: String):
-	print("场景2 - 切换完成: ", scene_path)
+	print("场景2 - 切换完成 (C# Interface): ", scene_path)
+
+func _on_scene_preload_completed(scene_path: String):
+	print("场景预加载完成 (C# Interface): ", scene_path)
+	_update_info()

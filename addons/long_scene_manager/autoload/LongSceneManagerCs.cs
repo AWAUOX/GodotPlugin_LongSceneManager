@@ -78,6 +78,9 @@ namespace LongSceneManagerCs
 		// 总是使用默认加载屏幕
 		[Export] 
 		private bool _alwaysUseDefaultLoadScreen = false;
+
+		//静态实例引用
+		private static LongSceneManagerCs _instance;
 		
 		#endregion
 		
@@ -115,6 +118,9 @@ namespace LongSceneManagerCs
 		{
 			GD.Print("[SceneManager] 场景管理器单例初始化");
 			
+			//初始化静态实例引用
+			_instance = this;
+
 			// 初始化默认加载屏幕
 			InitDefaultLoadScreen();
 			
@@ -130,6 +136,19 @@ namespace LongSceneManagerCs
 		}
 		
 		#endregion
+
+
+
+		#region 场景实例引用
+		/// <summary>
+		/// 初始化场景实例引用
+        /// 
+		/// </summary>
+		public static LongSceneManagerCs Instance => _instance;
+		#endregion 场景实例引用
+
+
+
 		
 		#region 初始化函数
 		
@@ -235,8 +254,7 @@ namespace LongSceneManagerCs
 		#region 公开API - 场景切换
 		
 		/// <summary>
-		/// 切换到指定场景
-		/// 支持多种优化策略：缓存、预加载、自定义加载屏幕等
+		/// 切换到指定场景（异步方法，供C#代码使用）
 		/// </summary>
 		/// <param name="newScenePath">要切换到的新场景路径</param>
 		/// <param name="useCache">是否使用缓存机制，默认为true</param>
@@ -311,13 +329,24 @@ namespace LongSceneManagerCs
 			await HandleDirectLoad(newScenePath, loadScreenToUse, useCache);
 		}
 		
+		/// <summary>
+		/// 专供GDScript调用的场景切换方法（非异步包装）
+		/// </summary>
+		/// <param name="newScenePath">要切换到的新场景路径</param>
+		/// <param name="useCache">是否使用缓存机制，默认为true</param>
+		/// <param name="loadScreenPath">自定义加载屏幕路径，为空则使用默认加载屏幕</param>
+		public void SwitchSceneGD(string newScenePath, bool useCache = true, string loadScreenPath = "")
+		{
+			// 调用异步方法，但不等待其结果
+			_ = SwitchScene(newScenePath, useCache, loadScreenPath);
+		}
+		
 		#endregion
 		
 		#region 公开API - 预加载
 		
 		/// <summary>
-		/// 预加载指定场景
-		/// 提前加载场景资源到内存中，以加快后续的场景切换速度
+		/// 预加载指定场景（异步方法，供C#代码使用）
 		/// </summary>
 		/// <param name="scenePath">要预加载的场景路径</param>
 		/// <returns>异步任务</returns>
@@ -390,6 +419,16 @@ namespace LongSceneManagerCs
 				_loadingScenePath = "";
 				GD.Print($"[SceneManager] 预加载失败: {scenePath}");
 			}
+		}
+		
+		/// <summary>
+		/// 专供GDScript调用的预加载场景方法（非异步包装）
+		/// </summary>
+		/// <param name="scenePath">要预加载的场景路径</param>
+		public void PreloadSceneGD(string scenePath)
+		{
+			// 调用异步方法，但不等待其结果
+			_ = PreloadScene(scenePath);
 		}
 		
 		#endregion
@@ -678,21 +717,40 @@ namespace LongSceneManagerCs
 			if (loadScreenInstance.HasMethod("fade_in"))
 			{
 				GD.Print("[SceneManager] 调用加载屏幕淡入效果");
-				var result = loadScreenInstance.Call("fade_in");
-				// 如果淡入方法返回了带有completed信号的对象，则等待该信号
-				if (result.AsGodotObject() != null && result.AsGodotObject().HasSignal("completed"))
+				try 
 				{
-					await ToSignal(result.AsGodotObject(), "completed");
+					var result = loadScreenInstance.Call("fade_in");
+					// 首先检查是否有completed信号（兼容性处理）
+					if (result.AsGodotObject() != null && result.AsGodotObject().HasSignal("completed"))
+					{
+						await ToSignal(result.AsGodotObject(), "completed");
+					}
+					// 如果没有completed信号，尝试连接fade_in_completed信号
+					else if (loadScreenInstance.HasSignal("fade_in_completed"))
+					{
+						await ToSignal(loadScreenInstance, "fade_in_completed");
+					}
+				}
+				catch (Exception e)
+				{
+					GD.PrintErr($"[SceneManager] 调用fade_in时发生错误: {e.Message}");
 				}
 			}
 			// 如果有show_loading方法，则调用它
 			else if (loadScreenInstance.HasMethod("show_loading"))
 			{
-				var result = loadScreenInstance.Call("show_loading");
-				// 如果show_loading方法返回了带有completed信号的对象，则等待该信号
-				if (result.AsGodotObject() != null && result.AsGodotObject().HasSignal("completed"))
+				try
 				{
-					await ToSignal(result.AsGodotObject(), "completed");
+					var result = loadScreenInstance.Call("show_loading");
+					// 如果show_loading方法返回了带有completed信号的对象，则等待该信号
+					if (result.AsGodotObject() != null && result.AsGodotObject().HasSignal("completed"))
+					{
+						await ToSignal(result.AsGodotObject(), "completed");
+					}
+				}
+				catch (Exception e)
+				{
+					GD.PrintErr($"[SceneManager] 调用show_loading时发生错误: {e.Message}");
 				}
 			}
 			
@@ -719,27 +777,53 @@ namespace LongSceneManagerCs
 			if (loadScreenInstance.HasMethod("fade_out"))
 			{
 				GD.Print("[SceneManager] 调用加载屏幕淡出效果");
-				var result = loadScreenInstance.Call("fade_out");
-				// 如果淡出方法返回了带有completed信号的对象，则等待该信号
-				if (result.AsGodotObject() != null && result.AsGodotObject().HasSignal("completed"))
+				try
 				{
-					await ToSignal(result.AsGodotObject(), "completed");
+					var result = loadScreenInstance.Call("fade_out");
+					// 首先检查是否有completed信号（兼容性处理）
+					if (result.AsGodotObject() != null && result.AsGodotObject().HasSignal("completed"))
+					{
+						await ToSignal(result.AsGodotObject(), "completed");
+					}
+					// 如果没有completed信号，尝试连接fade_out_completed信号
+					else if (loadScreenInstance.HasSignal("fade_out_completed"))
+					{
+						await ToSignal(loadScreenInstance, "fade_out_completed");
+					}
+				}
+				catch (Exception e)
+				{
+					GD.PrintErr($"[SceneManager] 调用fade_out时发生错误: {e.Message}");
 				}
 			}
 			// 如果有hide_loading方法，则调用它
 			else if (loadScreenInstance.HasMethod("hide_loading"))
 			{
-				var result = loadScreenInstance.Call("hide_loading");
-				// 如果hide_loading方法返回了带有completed信号的对象，则等待该信号
-				if (result.AsGodotObject() != null && result.AsGodotObject().HasSignal("completed"))
+				try
 				{
-					await ToSignal(result.AsGodotObject(), "completed");
+					var result = loadScreenInstance.Call("hide_loading");
+					// 如果hide_loading方法返回了带有completed信号的对象，则等待该信号
+					if (result.AsGodotObject() != null && result.AsGodotObject().HasSignal("completed"))
+					{
+						await ToSignal(result.AsGodotObject(), "completed");
+					}
+				}
+				catch (Exception e)
+				{
+					GD.PrintErr($"[SceneManager] 调用hide_loading时发生错误: {e.Message}");
 				}
 			}
 			// 如果有hide方法，则调用它
 			else if (loadScreenInstance.HasMethod("hide"))
 			{
-				loadScreenInstance.Call("hide");
+				try
+				{
+					loadScreenInstance.Call("hide");
+				}
+				catch (Exception e)
+				{
+					GD.PrintErr($"[SceneManager] 调用hide时发生错误: {e.Message}");
+				}
 			}
 			
 			// 清理加载屏幕实例
@@ -758,7 +842,14 @@ namespace LongSceneManagerCs
 				}
 				else if (loadScreenInstance.HasMethod("set_visible"))
 				{
-					loadScreenInstance.Call("set_visible", false);
+					try
+					{
+						loadScreenInstance.Call("set_visible", false);
+					}
+					catch (Exception e)
+					{
+						GD.PrintErr($"[SceneManager] 调用set_visible时发生错误: {e.Message}");
+					}
 				}
 			}
 			

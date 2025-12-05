@@ -66,8 +66,8 @@ public partial class main_scene_cs : Control
 
 	private void UpdateInfoLabel()
 	{
-		// 获取缓存信息
-		LongSceneManagerCs.LongSceneManagerCs manager = (LongSceneManagerCs.LongSceneManagerCs)GetNode("/root/LongSceneManagerCs");
+		// 使用已缓存的场景管理器实例，避免在场景切换过程中使用GetNode
+		LongSceneManagerCs.LongSceneManagerCs manager = sceneManager;
 		
 		// 检查manager是否为空，避免空引用异常
 		if (manager == null)

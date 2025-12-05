@@ -714,12 +714,12 @@ namespace LongSceneManagerCs
 			}
 			
 			// 如果加载屏幕有淡入效果方法，则调用它
-			if (loadScreenInstance.HasMethod("fade_in"))
+			if (loadScreenInstance.HasMethod("FadeIn"))
 			{
 				GD.Print("[SceneManager] 调用加载屏幕淡入效果");
 				try 
 				{
-					var result = loadScreenInstance.Call("fade_in");
+					var result = loadScreenInstance.Call("FadeIn");
 					// 首先检查是否有completed信号（兼容性处理）
 					if (result.AsGodotObject() != null && result.AsGodotObject().HasSignal("completed"))
 					{
@@ -774,12 +774,12 @@ namespace LongSceneManagerCs
 			}
 			
 			// 如果加载屏幕有淡出效果方法，则调用它
-			if (loadScreenInstance.HasMethod("fade_out"))
+			if (loadScreenInstance.HasMethod("FadeOut"))
 			{
 				GD.Print("[SceneManager] 调用加载屏幕淡出效果");
 				try
 				{
-					var result = loadScreenInstance.Call("fade_out");
+					var result = loadScreenInstance.Call("FadeOut");
 					// 首先检查是否有completed信号（兼容性处理）
 					if (result.AsGodotObject() != null && result.AsGodotObject().HasSignal("completed"))
 					{

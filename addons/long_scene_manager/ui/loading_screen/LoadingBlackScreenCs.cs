@@ -44,6 +44,13 @@ public partial class LoadingBlackScreenCs : CanvasLayer
 	
 	[Signal]
 	public delegate void FadeOutCompletedEventHandler();
+	
+	// 兼容SceneManager的信号名称
+	[Signal]
+	public delegate void fade_in_completedEventHandler();
+	
+	[Signal]
+	public delegate void fade_out_completedEventHandler();
 
 	// 私有变量
 	private ColorRect _colorRect;
@@ -99,7 +106,18 @@ public partial class LoadingBlackScreenCs : CanvasLayer
 		await ToSignal(_tween, "finished");
 		_isTransitioning = false;
 		EmitSignal(SignalName.FadeInCompleted);
+		EmitSignal(SignalName.fade_in_completed);
 		GD.Print("黑屏淡入完成");
+	}
+	
+	/// <summary>
+	/// GDScript兼容的淡入方法
+	/// </summary>
+	/// <returns>Godot对象，可用于等待完成信号</returns>
+	public GodotObject fade_in()
+	{
+		FadeIn();
+		return this;
 	}
 
 	/// <summary>
@@ -126,7 +144,18 @@ public partial class LoadingBlackScreenCs : CanvasLayer
 		_colorRect.Visible = false;
 		_isTransitioning = false;
 		EmitSignal(SignalName.FadeOutCompleted);
+		EmitSignal(SignalName.fade_out_completed);
 		GD.Print("黑屏淡出完成");
+	}
+	
+	/// <summary>
+	/// GDScript兼容的淡出方法
+	/// </summary>
+	/// <returns>Godot对象，可用于等待完成信号</returns>
+	public GodotObject fade_out()
+	{
+		FadeOut();
+		return this;
 	}
 
 	/// <summary>

@@ -1,51 +1,193 @@
-[gd_scene load_steps=2 format=3 uid="uid://d2enyga3f20ol"]
+[gd_scene format=3 uid="uid://d2enyga3f20ol"]
 
 [ext_resource type="Script" uid="uid://w6elvtc2gfuv" path="res://demo_test_scene_manager/test_scene_2_script/test_scene_2_gd.gd" id="1_w6x54"]
 
-[node name="TestScene2" type="Node2D"]
+[node name="TestScene2" type="Control" unique_id=1464101186]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_w6x54")
 
-[node name="TextureRect" type="ColorRect" parent="."]
-offset_right = 1281.0
-offset_bottom = 721.0
+[node name="TextureRect" type="ColorRect" parent="." unique_id=249932131]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 color = Color(0.4109827, 0.5730941, 0.47753507, 1)
 
-[node name="Label" type="Label" parent="."]
-offset_left = 789.0
-offset_top = 9.0
-offset_right = 1274.0
-offset_bottom = 192.0
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=440524307]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer" unique_id=660705289]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer" unique_id=1594504904]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+alignment = 1
+
+[node name="Button_Main" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer" unique_id=784949466]
+custom_minimum_size = Vector2(200, 60)
+layout_mode = 2
+text = "Button_Main"
+
+[node name="Button_Scene1" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer" unique_id=505550171]
+custom_minimum_size = Vector2(200, 60)
+layout_mode = 2
+text = "Button_Scene1"
+
+[node name="scene3" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer" unique_id=726910669]
+layout_mode = 2
+size_flags_vertical = 3
+alignment = 1
+
+[node name="Button_PreloadScene3" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/scene3" unique_id=66353143]
+custom_minimum_size = Vector2(200, 60)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Preload Scene 3 "
+
+[node name="Button_SwitchScene3WithPreload" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/scene3" unique_id=1175633666]
+custom_minimum_size = Vector2(200, 60)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Switch to Scene3 With Perload"
+
+[node name="Button_SwitchScene3Direct" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/scene3" unique_id=579437283]
+custom_minimum_size = Vector2(200, 60)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Switch to Scene 3 Direct"
+
+[node name="scene4" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer" unique_id=962945234]
+layout_mode = 2
+size_flags_vertical = 3
+alignment = 1
+
+[node name="Button_PreloadScene4" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/scene4" unique_id=197937341]
+custom_minimum_size = Vector2(200, 60)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Preload Scene 4 "
+
+[node name="Button_SwitchScene4WithPreload" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/scene4" unique_id=469595053]
+custom_minimum_size = Vector2(200, 60)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Switch to Scene4 With Preload"
+
+[node name="Button_SwitchScene4Direct" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/scene4" unique_id=1471768886]
+custom_minimum_size = Vector2(200, 60)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Switch to Scene 4 Direct"
+
+[node name="Scene5" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer" unique_id=388494103]
+layout_mode = 2
+size_flags_vertical = 3
+alignment = 1
+
+[node name="Button_PreloadScene5" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/Scene5" unique_id=1069503802]
+custom_minimum_size = Vector2(200, 60)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Preload Scene 5 "
+
+[node name="Button_SwitchScene5WithPreload" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/Scene5" unique_id=821794253]
+custom_minimum_size = Vector2(200, 60)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Switch to Scene5 With Preload"
+
+[node name="Button_SwitchScene5Direct" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/Scene5" unique_id=357039490]
+custom_minimum_size = Vector2(200, 60)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Switch to Scene 5 Direct"
+
+[node name="VBoxContainer2" type="VBoxContainer" parent="VBoxContainer/HBoxContainer" unique_id=744612951]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+alignment = 1
+
+[node name="Label" type="Label" parent="VBoxContainer/HBoxContainer/VBoxContainer2" unique_id=540729030]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 64
 text = "scene2"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
-offset_right = 772.0
-offset_bottom = 517.0
-
-[node name="Button_Main" type="Button" parent="VBoxContainer"]
-custom_minimum_size = Vector2(200, 60)
-layout_mode = 2
-text = "Button_Main"
-
-[node name="Button_Scene1" type="Button" parent="VBoxContainer"]
-custom_minimum_size = Vector2(200, 60)
-layout_mode = 2
-text = "Button_Scene1"
-
-[node name="Button_PreloadMain" type="Button" parent="VBoxContainer"]
-custom_minimum_size = Vector2(200, 60)
-layout_mode = 2
-text = "Button_PreloadMain "
-
-[node name="Label_Info" type="Label" parent="VBoxContainer"]
+[node name="Label_Info" type="Label" parent="VBoxContainer/HBoxContainer/VBoxContainer2" unique_id=500112910]
 custom_minimum_size = Vector2(200, 200)
 layout_mode = 2
 text = "Label_Info"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
 
-[node name="ProgressBar" type="ProgressBar" parent="."]
-offset_left = 159.0
-offset_top = 559.0
-offset_right = 1136.0
-offset_bottom = 586.0
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer" unique_id=1614256736]
+layout_mode = 2
+alignment = 1
+
+[node name="scene3" type="HBoxContainer" parent="VBoxContainer/VBoxContainer" unique_id=1061363954]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Label" type="Label" parent="VBoxContainer/VBoxContainer/scene3" unique_id=1680407171]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "Perload Scene 3"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ProgressBar_PreloadScene3" type="ProgressBar" parent="VBoxContainer/VBoxContainer/scene3" unique_id=1265019544]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="scene4" type="HBoxContainer" parent="VBoxContainer/VBoxContainer" unique_id=1307236740]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Label" type="Label" parent="VBoxContainer/VBoxContainer/scene4" unique_id=771845838]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "Perload Scene 4"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ProgressBar_PreloadScene4" type="ProgressBar" parent="VBoxContainer/VBoxContainer/scene4" unique_id=425864710]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="scene5" type="HBoxContainer" parent="VBoxContainer/VBoxContainer" unique_id=184404211]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Label" type="Label" parent="VBoxContainer/VBoxContainer/scene5" unique_id=1960016238]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "Perload Scene 5"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ProgressBar_PreloadScene5" type="ProgressBar" parent="VBoxContainer/VBoxContainer/scene5" unique_id=1994824403]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/Button_Main" to="." method="_on_button_main_pressed"]
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/Button_Scene1" to="." method="_on_button_scene_1_pressed"]

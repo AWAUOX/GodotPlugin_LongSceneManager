@@ -7,7 +7,7 @@ func _enable_plugin() -> void:
 	add_autoload_singleton(
 		AUTOLOAD_NAME,
         "res://addons/long_scene_manager/autoload/long_scene_manager.gd"
-    )
+	)
 
 func _disable_plugin() -> void:
 	remove_autoload_singleton(AUTOLOAD_NAME)

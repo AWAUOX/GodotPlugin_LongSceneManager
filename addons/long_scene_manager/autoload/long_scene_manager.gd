@@ -33,6 +33,8 @@ signal load_screen_shown(load_screen_instance: Node)
 
 signal load_screen_hidden(load_screen_instance: Node)
 
+signal scene_preload_failed(scene_path: String)
+
 # ==================== 导出变量 ====================
 
 @export_category("Scene Manager Global Configuration")
@@ -43,6 +45,8 @@ signal load_screen_hidden(load_screen_instance: Node)
 @export var use_async_loading: bool = true
 
 @export var always_use_default_load_screen: bool = false
+
+@export_range(1, 10) var instantiate_frames: int = 3
 
 # ==================== 内部状态变量 ====================
 
@@ -56,12 +60,6 @@ var default_load_screen: Node = null
 
 var active_load_screen: Node = null
 
-var loading_scene_path: String = ""
-
-var loading_state: LoadState = LoadState.NOT_LOADED
-
-var loading_resource: PackedScene = null
-
 var scene_cache: Dictionary = {}
 
 var cache_access_order: Array = []
@@ -69,6 +67,17 @@ var cache_access_order: Array = []
 var preload_resource_cache: Dictionary = {}
 
 var preload_resource_cache_access_order: Array = []
+
+var _preload_states: Dictionary = {}
+
+func _get_preload_state(scene_path: String) -> Dictionary:
+	if not _preload_states.has(scene_path):
+		_preload_states[scene_path] = {"state": LoadState.NOT_LOADED, "resource": null}
+	return _preload_states[scene_path]
+
+func _clear_preload_state(scene_path: String) -> void:
+	if _preload_states.has(scene_path):
+		_preload_states.erase(scene_path)
 
 class CachedScene:
 	var scene_instance: Node
@@ -189,7 +198,7 @@ func switch_scene(new_scene_path: String, use_cache: bool = true, load_screen_pa
 		await _handle_preloaded_resource(new_scene_path, load_screen_to_use, use_cache)
 		return
 	
-	if loading_scene_path == new_scene_path and loading_state == LoadState.LOADING:
+	if _preload_states.has(new_scene_path) and _preload_states[new_scene_path]["state"] == LoadState.LOADING:
 		print("[SceneManager] Scene is preloading, waiting for completion...")
 		await _handle_preloading_scene(new_scene_path, load_screen_to_use, use_cache)
 		return
@@ -214,33 +223,69 @@ func preload_scene(scene_path: String) -> void:
 		_update_preload_resource_cache_access(scene_path)
 		return
 	
-	if loading_scene_path == scene_path or scene_cache.has(scene_path):
+	if scene_cache.has(scene_path):
+		print("[SceneManager] Scene already loaded or loading: ", scene_path)
+		return
+	
+	var preload_state = _get_preload_state(scene_path)
+	if preload_state["state"] == LoadState.LOADING or preload_state["state"] == LoadState.LOADED:
 		print("[SceneManager] Scene already loaded or loading: ", scene_path)
 		return
 	
 	print("[SceneManager] Start preloading scene: ", scene_path)
 	scene_preload_started.emit(scene_path)
 	
-	loading_scene_path = scene_path
-	loading_state = LoadState.LOADING
+	preload_state["state"] = LoadState.LOADING
 	
+	_preload_background(scene_path)
+
+func preload_scenes(scene_paths: Array[String]) -> void:
+	for path in scene_paths:
+		preload_scene(path)
+
+func cancel_preload_scene(scene_path: String) -> void:
+	if _preload_states.has(scene_path) and _preload_states[scene_path]["state"] == LoadState.LOADING:
+		_clear_preload_state(scene_path)
+		print("[SceneManager] Cancelled preload: ", scene_path)
+
+func cancel_all_preloads() -> void:
+	var to_cancel = []
+	for path in _preload_states:
+		if _preload_states[path]["state"] == LoadState.LOADING:
+			to_cancel.append(path)
+	
+	for path in to_cancel:
+		cancel_preload_scene(path)
+
+func _preload_background(scene_path: String) -> void:
 	if use_async_loading:
 		await _async_preload_scene(scene_path)
 	else:
 		_sync_preload_scene(scene_path)
 	
-	if loading_resource:
-		preload_resource_cache[scene_path] = loading_resource
+	if not _preload_states.has(scene_path):
+		print("[SceneManager] Preload was cancelled: ", scene_path)
+		return
+	
+	var preload_state = _preload_states[scene_path]
+	if preload_state["state"] != LoadState.LOADING:
+		print("[SceneManager] Preload was cancelled: ", scene_path)
+		return
+	
+	if preload_state["resource"]:
+		preload_resource_cache[scene_path] = preload_state["resource"]
 		preload_resource_cache_access_order.append(scene_path)
-		loading_state = LoadState.LOADED
+		preload_state["state"] = LoadState.LOADED
 		scene_preload_completed.emit(scene_path)
 		print("[SceneManager] Preloading complete, resource cached: ", scene_path)
 		
 		if preload_resource_cache_access_order.size() > max_preload_resource_cache_size:
 			_remove_oldest_preload_resource()
 	else:
-		loading_state = LoadState.NOT_LOADED
-		loading_scene_path = ""
+		preload_state["state"] = LoadState.NOT_LOADED
+		preload_state["resource"] = null
+		_clear_preload_state(scene_path)
+		scene_preload_failed.emit(scene_path)
 		print("[SceneManager] Preloading failed: ", scene_path)
 
 # ==================== 公开API - 缓存管理 ====================
@@ -250,6 +295,7 @@ func clear_cache() -> void:
 	
 	preload_resource_cache.clear()
 	preload_resource_cache_access_order.clear()
+	_preload_states.clear()
 	print("[SceneManager] Preload resource cache cleared")
 	
 	var to_remove = []
@@ -266,10 +312,6 @@ func clear_cache() -> void:
 		var index = cache_access_order.find(scene_path)
 		if index != -1:
 			cache_access_order.remove_at(index)
-	
-	loading_scene_path = ""
-	loading_state = LoadState.NOT_LOADED
-	loading_resource = null
 	
 	print("[SceneManager] Cache cleared")
 
@@ -288,6 +330,11 @@ func get_cache_info() -> Dictionary:
 	for path in preload_resource_cache:
 		preloaded_scenes.append(path)
 	
+	var preloading_scenes = []
+	for path in _preload_states:
+		if _preload_states[path]["state"] == LoadState.LOADING:
+			preloading_scenes.append(path)
+	
 	return {
 		"instance_cache_size": scene_cache.size(),
 		"max_size": max_cache_size,
@@ -296,11 +343,22 @@ func get_cache_info() -> Dictionary:
 		"preload_resource_cache": preloaded_scenes,
 		"preload_cache_size": preload_resource_cache.size(),
 		"max_preload_resource_cache_size": max_preload_resource_cache_size,
-		"preload_resource_access_order": preload_resource_cache_access_order.duplicate()
+		"preload_resource_access_order": preload_resource_cache_access_order.duplicate(),
+		"preloading_scenes": preloading_scenes
 	}
 
 func is_scene_cached(scene_path: String) -> bool:
 	return scene_cache.has(scene_path) or preload_resource_cache.has(scene_path)
+
+func is_scene_preloading(scene_path: String) -> bool:
+	return _preload_states.has(scene_path) and _preload_states[scene_path]["state"] == LoadState.LOADING
+
+func get_preloading_scenes() -> Array:
+	var loading = []
+	for path in _preload_states:
+		if _preload_states[path]["state"] == LoadState.LOADING:
+			loading.append(path)
+	return loading
 
 # ==================== 公开API - 实用函数 ====================
 
@@ -311,15 +369,18 @@ func get_previous_scene_path() -> String:
 	return previous_scene_path
 
 func get_loading_progress(scene_path: String) -> float:
-	if loading_scene_path != scene_path or loading_state != LoadState.LOADING:
-		return 1.0 if (scene_cache.has(scene_path) or preload_resource_cache.has(scene_path)) else 0.0
+	if _preload_states.has(scene_path):
+		var state = _preload_states[scene_path]["state"]
+		if state == LoadState.LOADING:
+			var progress = []
+			var status = ResourceLoader.load_threaded_get_status(scene_path, progress)
+			if status == ResourceLoader.THREAD_LOAD_IN_PROGRESS and progress.size() > 0:
+				return progress[0]
+			return 0.0
+		elif state == LoadState.LOADED:
+			return 1.0
 	
-	var progress = []
-	var status = ResourceLoader.load_threaded_get_status(scene_path, progress)
-	if status == ResourceLoader.THREAD_LOAD_IN_PROGRESS and progress.size() > 0:
-		return progress[0]
-	
-	return 0.0
+	return 1.0 if (scene_cache.has(scene_path) or preload_resource_cache.has(scene_path)) else 0.0
 
 func set_max_cache_size(new_size: int) -> void:
 	if new_size < 1:
@@ -437,20 +498,45 @@ func _handle_preloaded_resource(scene_path: String, load_screen_instance: Node, 
 		return
 	
 	print("[SceneManager] Instantiate preloaded resources: ", scene_path)
-	var new_scene = packed_scene.instantiate()
+	
+	var new_scene = await _instantiate_scene_deferred(packed_scene, load_screen_instance)
+	if not new_scene:
+		push_error("[SceneManager] Scene instantiation failed")
+		await _hide_load_screen(load_screen_instance)
+		return
+	
 	await _perform_scene_switch(new_scene, scene_path, load_screen_instance, use_cache)
 
 func _handle_preloading_scene(scene_path: String, load_screen_instance: Node, use_cache: bool) -> void:
 	await _show_load_screen(load_screen_instance)
-	await _wait_for_preload(scene_path)
 	
-	if loading_resource:
-		preload_resource_cache[scene_path] = loading_resource
+	var wait_start_time = Time.get_ticks_msec()
+	while _preload_states.has(scene_path) and _preload_states[scene_path]["state"] == LoadState.LOADING:
+		var progress = get_loading_progress(scene_path)
+		
+		if load_screen_instance and load_screen_instance.has_method("set_progress"):
+			load_screen_instance.set_progress(progress)
+		elif load_screen_instance and load_screen_instance.has_method("update_progress"):
+			load_screen_instance.update_progress(progress)
+		
+		if Time.get_ticks_msec() - wait_start_time > 500:
+			print("[SceneManager] Preload progress: ", progress * 100, "%")
+			wait_start_time = Time.get_ticks_msec()
+		
+		await get_tree().process_frame
+	
+	print("[SceneManager] Preload waiting completed")
+	
+	var preload_state = _get_preload_state(scene_path)
+	if preload_state["resource"]:
+		preload_resource_cache[scene_path] = preload_state["resource"]
 		preload_resource_cache_access_order.append(scene_path)
 		print("[SceneManager] Preload resource cached: ", scene_path)
 		
 		if preload_resource_cache_access_order.size() > max_preload_resource_cache_size:
 			_remove_oldest_preload_resource()
+	
+	_clear_preload_state(scene_path)
 	
 	await _instantiate_and_switch(scene_path, load_screen_instance, use_cache)
 
@@ -462,41 +548,83 @@ func _handle_direct_load(scene_path: String, load_screen_instance: Node, use_cac
 	await _show_load_screen(load_screen_instance)
 	await _load_and_switch(scene_path, load_screen_instance, use_cache)
 
-# ==================== 加载和切换核心函数 ====================
-
-func _wait_for_preload(scene_path: String) -> void:
-	print("[SceneManager] Waiting for preload to complete: ", scene_path)
+func _instantiate_scene_deferred(packed_scene: PackedScene, load_screen_instance: Node = null) -> Node:
+	if instantiate_frames <= 1:
+		return packed_scene.instantiate()
 	
-	var wait_start_time = Time.get_ticks_msec()
-	while loading_scene_path == scene_path and loading_state == LoadState.LOADING:
-		if Time.get_ticks_msec() - wait_start_time > 500:
-			var progress = get_loading_progress(scene_path)
-			print("[SceneManager] Preload progress: ", progress * 100, "%")
-			wait_start_time = Time.get_ticks_msec()
+	var instance = packed_scene.instantiate()
+	if not instance:
+		return null
+	
+	var children = _collect_children_recursive(instance)
+	var total = children.size()
+	
+	if total == 0:
+		return instance
+	
+	var frame_size = max(1, ceil(float(total) / instantiate_frames))
+	
+	for i in range(0, total, frame_size):
+		for j in range(frame_size):
+			var idx = i + j
+			if idx >= total:
+				break
+			var child = children[idx]
+			if is_instance_valid(child):
+				child.set_process(false)
+				child.set_physics_process(false)
+				child.set_process_input(false)
+				child.set_process_unhandled_input(false)
+				child.set_process_unhandled_key_input(false)
+		
+		var processed = min(i + frame_size, total)
+		
+		if load_screen_instance and load_screen_instance.has_method("set_progress"):
+			load_screen_instance.set_progress(float(processed) / total)
+		elif load_screen_instance and load_screen_instance.has_method("update_progress"):
+			load_screen_instance.update_progress(float(processed) / total)
 		
 		await get_tree().process_frame
 	
-	print("[SceneManager] Preload waiting completed")
+	for child in children:
+		if is_instance_valid(child):
+			child.set_process(true)
+			child.set_physics_process(true)
+			child.set_process_input(true)
+			child.set_process_unhandled_input(true)
+			child.set_process_unhandled_key_input(true)
+	
+	return instance
+
+func _collect_children_recursive(root: Node) -> Array:
+	var result = []
+	var queue = [root]
+	while queue.size() > 0:
+		var node = queue.pop_front()
+		if node != root:
+			result.append(node)
+		for child in node.get_children():
+			queue.append(child)
+	return result
 
 func _instantiate_and_switch(scene_path: String, load_screen_instance: Node, use_cache: bool) -> void:
-	if not loading_resource or loading_scene_path != scene_path:
-		push_error("[SceneManager] Preloaded resource does not exist or path mismatch")
+	if not preload_resource_cache.has(scene_path):
+		push_error("[SceneManager] Preloaded resource does not exist: ", scene_path)
 		await _hide_load_screen(load_screen_instance)
 		return
 	
 	print("[SceneManager] Instantiating preloaded scene: ", scene_path)
 	
-	var new_scene = loading_resource.instantiate()
+	var packed_scene = preload_resource_cache[scene_path]
+	var new_scene = await _instantiate_scene_deferred(packed_scene, load_screen_instance)
 	if not new_scene:
 		push_error("[SceneManager] Scene instantiation failed")
 		await _hide_load_screen(load_screen_instance)
 		return
 	
 	await _perform_scene_switch(new_scene, scene_path, load_screen_instance, use_cache)
-	
-	loading_scene_path = ""
-	loading_state = LoadState.NOT_LOADED
-	loading_resource = null
+
+# ==================== 加载和切换核心函数 ====================
 
 func _switch_to_cached_scene(scene_path: String, load_screen_instance: Node) -> void:
 	if not scene_cache.has(scene_path):
@@ -539,7 +667,7 @@ func _load_and_switch(scene_path: String, load_screen_instance: Node, use_cache:
 		await _hide_load_screen(load_screen_instance)
 		return
 	
-	var new_scene = new_scene_resource.instantiate()
+	var new_scene = await _instantiate_scene_deferred(new_scene_resource, load_screen_instance)
 	if not new_scene:
 		push_error("[SceneManager] Scene instantiation failed: ", scene_path)
 		await _hide_load_screen(load_screen_instance)
@@ -688,23 +816,27 @@ func _async_preload_scene(scene_path: String) -> void:
 				await get_tree().process_frame
 			
 			ResourceLoader.THREAD_LOAD_LOADED:
-				loading_resource = ResourceLoader.load_threaded_get(scene_path)
+				var preload_state = _get_preload_state(scene_path)
+				preload_state["resource"] = ResourceLoader.load_threaded_get(scene_path)
 				print("[SceneManager] Asynchronous preload completed: ", scene_path)
 				return
 			
 			ResourceLoader.THREAD_LOAD_FAILED:
 				push_error("[SceneManager] Asynchronous loading failed: ", scene_path)
-				loading_resource = null
+				var preload_state = _get_preload_state(scene_path)
+				preload_state["resource"] = null
 				return
 			
 			_:
 				push_error("[SceneManager] Unknown loading status: ", status)
-				loading_resource = null
+				var preload_state = _get_preload_state(scene_path)
+				preload_state["resource"] = null
 				return
 
 func _sync_preload_scene(scene_path: String) -> void:
 	print("[SceneManager] Synchronous preload: ", scene_path)
-	loading_resource = load(scene_path)
+	var preload_state = _get_preload_state(scene_path)
+	preload_state["resource"] = load(scene_path)
 
 # ==================== 孤立节点清理函数 ====================
 
@@ -757,8 +889,13 @@ func print_debug_info() -> void:
 	print("Preload resource cache count: ", preload_resource_cache.size(), "/", max_preload_resource_cache_size)
 	print("Cache access order: ", cache_access_order)
 	print("Preload resource cache access order: ", preload_resource_cache_access_order)
-	print("Scene currently loading: ", loading_scene_path if loading_scene_path != "" else "None")
-	print("Loading state: ", LoadState.keys()[loading_state])
+	
+	var loading_scenes = []
+	for path in _preload_states:
+		if _preload_states[path]["state"] == LoadState.LOADING:
+			loading_scenes.append(path)
+	print("Scenes currently loading: ", loading_scenes if loading_scenes.size() > 0 else "None")
+	
 	print("Default loading screen: ", "Loaded" if default_load_screen else "Not loaded")
 	print("Active loading screen: ", "Yes" if active_load_screen else "No")
 	print("Using asynchronous loading: ", use_async_loading)

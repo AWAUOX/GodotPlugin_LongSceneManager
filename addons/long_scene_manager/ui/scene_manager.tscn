@@ -4,4 +4,3 @@
 
 [node name="SceneManager" type="Node" unique_id=1318653637]
 script = ExtResource("1_irrvp")
-debug_log_direct_load_progress = true

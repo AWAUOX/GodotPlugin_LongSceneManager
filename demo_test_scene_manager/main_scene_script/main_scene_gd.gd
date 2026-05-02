@@ -6,12 +6,15 @@ extends Control
 const TEST_SCENE_1_PATH = "res://demo_test_scene_manager/test_scene_1.tscn"
 const TEST_SCENE_2_PATH = "res://demo_test_scene_manager/test_scene_2.tscn"
 
-@onready var button_scene_1: Button = $VBoxContainer/Button_Scene1
-@onready var button_scene_2: Button = $VBoxContainer/Button_Scene2
-@onready var button_preload_1: Button = $VBoxContainer/Button_Preload1
-@onready var button_preload_2: Button = $VBoxContainer/Button_Preload2
-@onready var button_clear_cache: Button = $VBoxContainer/Button_ClearCache
-@onready var label_info: Label = $VBoxContainer/Label_Info
+
+@onready var button_scene_1: Button = $MarginContainer/VBoxContainer/HBoxContainer2/HBoxContainer/Button_Scene1
+@onready var button_scene_2: Button = $MarginContainer/VBoxContainer/HBoxContainer2/HBoxContainer/Button_Scene2
+@onready var button_preload_1: Button = $MarginContainer/VBoxContainer/HBoxContainer2/HBoxContainer/Button_Preload1
+@onready var button_preload_2: Button = $MarginContainer/VBoxContainer/HBoxContainer2/HBoxContainer/Button_Preload2
+@onready var button_clear_cache: Button = $MarginContainer/VBoxContainer/HBoxContainer2/HBoxContainer/Button_ClearCache
+@onready var label_info: Label = $MarginContainer/VBoxContainer/HBoxContainer2/ScrollContainer/VBoxContainer/Label_Info
+
+
 
 
 var is_first_enter:bool = true
@@ -46,25 +49,37 @@ func _process(delta:float) -> void:
 
 
 func _update_info_label():
-	#LongSceneManager.print_debug_info()
-	##"更新显示信息"""
-	var cache_info:Dictionary = LongSceneManager.get_cache_info()
-	
+	var cache_info = LongSceneManager.get_cache_info()
+
+	# 处理实例化场景缓存列表
+	var instance_paths = []
+	for s in cache_info.instance_cache.scenes:
+		instance_paths.append(s.path)
+	var instance_list = "\n".join(instance_paths) if not instance_paths.is_empty() else "（empty）"
+
+	# 处理预加载资源缓存列表
+	var preload_list = "\n".join(cache_info.preload_cache.scenes) if not cache_info.preload_cache.scenes.is_empty() else "（empty）"
+
 	label_info.text = """
-	当前场景: Main Scene
-	上一个场景: {previous}
-	缓存实例场景数: {cache_count}/{cache_max}
-	缓存最大数值: {cache_max}
-	缓存实例场景列表: {cache_list}
-	预加载资源缓存数量: {preload_cache_size}
-	预加载缓存最大数值: {preload_cache_max}
-	""".format({
-		"previous": LongSceneManager.get_previous_scene_path(),
-		"cache_count": cache_info.instance_cache_size,
-		"cache_max": cache_info.max_size,
-		"cache_list": ",\n ".join(cache_info.access_order),
-		"preload_cache_size": LongSceneManager.preload_resource_cache.size(),
-		"preload_cache_max": LongSceneManager.max_preload_resource_cache_size
+Current Scene: {current}
+Previous Scene: {previous}
+
+[Instance Scene Cache] Count: {instance_count}/{instance_max}
+Scene List:
+{instance_list}
+
+[Preloaded Resource Cache] Count: {preload_count}/{preload_max}
+Resource List:
+{preload_list}
+""".format({
+		"current": cache_info.current_scene,
+		"previous": cache_info.previous_scene,
+		"instance_count": cache_info.instance_cache.size,
+		"instance_max": cache_info.instance_cache.max_size,
+		"instance_list": instance_list,
+		"preload_count": cache_info.preload_cache.size,
+		"preload_max": cache_info.preload_cache.max_size,
+		"preload_list": preload_list
 	})
 
 func _on_scene1_pressed():

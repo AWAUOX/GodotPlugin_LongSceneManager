@@ -27,6 +27,15 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="VBoxContainer" unique_id=540729030]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 64
+text = "scene2"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer" unique_id=660705289]
 layout_mode = 2
@@ -36,7 +45,6 @@ size_flags_vertical = 3
 [node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer" unique_id=1594504904]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 4
 alignment = 1
 
 [node name="Button_Main" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer" unique_id=784949466]
@@ -59,18 +67,21 @@ custom_minimum_size = Vector2(200, 60)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Preload Scene 3 "
+autowrap_mode = 3
 
 [node name="Button_SwitchScene3WithPreload" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/scene3" unique_id=1175633666]
 custom_minimum_size = Vector2(200, 60)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Switch to Scene3 With Perload"
+autowrap_mode = 3
 
 [node name="Button_SwitchScene3Direct" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/scene3" unique_id=579437283]
 custom_minimum_size = Vector2(200, 60)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Switch to Scene 3 Direct"
+autowrap_mode = 3
 
 [node name="scene4" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer" unique_id=962945234]
 layout_mode = 2
@@ -82,18 +93,21 @@ custom_minimum_size = Vector2(200, 60)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Preload Scene 4 "
+autowrap_mode = 3
 
 [node name="Button_SwitchScene4WithPreload" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/scene4" unique_id=469595053]
 custom_minimum_size = Vector2(200, 60)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Switch to Scene4 With Preload"
+autowrap_mode = 3
 
 [node name="Button_SwitchScene4Direct" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/scene4" unique_id=1471768886]
 custom_minimum_size = Vector2(200, 60)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Switch to Scene 4 Direct"
+autowrap_mode = 3
 
 [node name="Scene5" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer" unique_id=388494103]
 layout_mode = 2
@@ -105,36 +119,31 @@ custom_minimum_size = Vector2(200, 60)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Preload Scene 5 "
+autowrap_mode = 3
 
 [node name="Button_SwitchScene5WithPreload" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/Scene5" unique_id=821794253]
 custom_minimum_size = Vector2(200, 60)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Switch to Scene5 With Preload"
+autowrap_mode = 3
 
 [node name="Button_SwitchScene5Direct" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/Scene5" unique_id=357039490]
 custom_minimum_size = Vector2(200, 60)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Switch to Scene 5 Direct"
+autowrap_mode = 3
 
 [node name="VBoxContainer2" type="VBoxContainer" parent="VBoxContainer/HBoxContainer" unique_id=744612951]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 4
 alignment = 1
-
-[node name="Label" type="Label" parent="VBoxContainer/HBoxContainer/VBoxContainer2" unique_id=540729030]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 64
-text = "scene2"
-horizontal_alignment = 1
-vertical_alignment = 1
 
 [node name="Label_Info" type="Label" parent="VBoxContainer/HBoxContainer/VBoxContainer2" unique_id=500112910]
 custom_minimum_size = Vector2(200, 200)
 layout_mode = 2
+size_flags_vertical = 6
 text = "Label_Info"
 horizontal_alignment = 1
 vertical_alignment = 1

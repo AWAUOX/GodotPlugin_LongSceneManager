@@ -74,6 +74,8 @@ var _preload_states: Dictionary = {}
 
 var _is_switching: bool = false
 
+var _scenes_to_reset: Dictionary = {}
+
 func _get_preload_state(scene_path: String) -> Dictionary:
 	if not _preload_states.has(scene_path):
 		_preload_states[scene_path] = {"state": LoadState.NOT_LOADED, "resource": null}
@@ -190,7 +192,7 @@ func switch_scene(new_scene_path: String, use_cache: bool = true, load_screen_pa
 	
 	scene_switch_started.emit(current_scene_path, new_scene_path)
 	
-	if current_scene_path == new_scene_path:
+	if current_scene_path == new_scene_path and not _scenes_to_reset.has(new_scene_path):
 		print("[SceneManager] Scene already loaded: ", new_scene_path)
 		_is_switching = false
 		scene_switch_completed.emit(new_scene_path)
@@ -322,6 +324,7 @@ func clear_cache() -> void:
 	print("[SceneManager] Cache cleared")
 
 func get_cache_info() -> Dictionary:
+	# 实例化场景缓存板块
 	var cached_scenes = []
 	for path in scene_cache:
 		var cached = scene_cache[path]
@@ -330,25 +333,40 @@ func get_cache_info() -> Dictionary:
 			"cached_time": cached.cached_time,
 			"instance_valid": is_instance_valid(cached.scene_instance)
 		})
-	
+
+	# 预加载资源缓存板块
 	var preloaded_scenes = []
 	for path in preload_resource_cache:
 		preloaded_scenes.append(path)
-	
+
+	# 正在预加载的场景
 	var preloading_scenes = []
 	for path in _preload_states:
 		if _preload_states[path]["state"] == LoadState.LOADING:
 			preloading_scenes.append(path)
-	
+
 	return {
-		"instance_cache_size": scene_cache.size(),
-		"max_size": max_cache_size,
-		"access_order": cache_access_order.duplicate(),
-		"cached_scenes": cached_scenes,
-		"preload_resource_cache": preloaded_scenes,
-		"preload_cache_size": preload_resource_cache.size(),
-		"max_preload_resource_cache_size": max_preload_resource_cache_size,
-		"preload_resource_access_order": preload_resource_cache_access_order.duplicate(),
+		# 基本信息
+		"current_scene": current_scene_path,
+		"previous_scene": previous_scene_path,
+
+		# 实例化场景缓存板块
+		"instance_cache": {
+			"size": scene_cache.size(),
+			"max_size": max_cache_size,
+			"access_order": cache_access_order.duplicate(),
+			"scenes": cached_scenes
+		},
+
+		# 预加载资源缓存板块
+		"preload_cache": {
+			"size": preload_resource_cache.size(),
+			"max_size": max_preload_resource_cache_size,
+			"access_order": preload_resource_cache_access_order.duplicate(),
+			"scenes": preloaded_scenes
+		},
+
+		# 正在预加载的场景
 		"preloading_scenes": preloading_scenes
 	}
 
@@ -357,6 +375,15 @@ func is_scene_cached(scene_path: String) -> bool:
 
 func is_scene_preloading(scene_path: String) -> bool:
 	return _preload_states.has(scene_path) and _preload_states[scene_path]["state"] == LoadState.LOADING
+
+func mark_scene_for_reset(scene_path: String) -> void:
+	_scenes_to_reset[scene_path] = true
+	print("[SceneManager] Scene marked for reset on next switch: ", scene_path)
+
+func unmark_scene_for_reset(scene_path: String) -> void:
+	if _scenes_to_reset.has(scene_path):
+		_scenes_to_reset.erase(scene_path)
+		print("[SceneManager] Scene unmarked for reset: ", scene_path)
 
 func get_preloading_scenes() -> Array:
 	var loading = []
@@ -685,21 +712,28 @@ func _load_and_switch(scene_path: String, load_screen_instance: Node, use_cache:
 
 func _perform_scene_switch(new_scene: Node, new_scene_path: String, load_screen_instance: Node, use_cache: bool) -> void:
 	print("[SceneManager] Performing scene switch to: ", new_scene_path)
-	
+
 	var old_scene = current_scene
 	var old_scene_path = current_scene_path
-	
+
 	previous_scene_path = current_scene_path
 	current_scene = new_scene
 	current_scene_path = new_scene_path
-	
+
 	if old_scene and old_scene != new_scene:
 		print("[SceneManager] Removing current scene: ", old_scene.name)
-		
+
 		if old_scene.is_inside_tree():
 			old_scene.get_parent().remove_child(old_scene)
-		
-		if use_cache and old_scene_path != "" and old_scene_path != new_scene_path:
+
+		if _scenes_to_reset.has(old_scene_path):
+			# 场景被标记为重置：释放实例，重新加载为资源保存到预加载缓存
+			print("[SceneManager] Scene marked for reset, reloading as resource: ", old_scene_path)
+			_cleanup_orphaned_nodes(old_scene)
+			old_scene.queue_free()
+			_reset_scene_as_resource(old_scene_path)
+			_scenes_to_reset.erase(old_scene_path)
+		elif use_cache and old_scene_path != "" and old_scene_path != new_scene_path:
 			_add_to_cache(old_scene_path, old_scene)
 		else:
 			_cleanup_orphaned_nodes(old_scene)
@@ -784,6 +818,21 @@ func _remove_oldest_preload_resource() -> void:
 	if preload_resource_cache.has(oldest_path):
 		preload_resource_cache.erase(oldest_path)
 		print("[SceneManager] Removing old preload resource: ", oldest_path)
+
+func _reset_scene_as_resource(scene_path: String) -> void:
+	print("[SceneManager] Resetting scene as resource: ", scene_path)
+	
+	var packed_scene = load(scene_path)
+	if not packed_scene:
+		push_error("[SceneManager] Failed to reload scene as resource: ", scene_path)
+		return
+	
+	preload_resource_cache[scene_path] = packed_scene
+	preload_resource_cache_access_order.append(scene_path)
+	print("[SceneManager] Scene reloaded and cached as resource: ", scene_path)
+	
+	if preload_resource_cache_access_order.size() > max_preload_resource_cache_size:
+		_remove_oldest_preload_resource()
 
 # ==================== 预加载内部函数 ====================
 

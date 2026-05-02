@@ -1,45 +1,63 @@
-[gd_scene load_steps=2 format=3 uid="uid://mbi1fk1dvsti"]
+[gd_scene format=3 uid="uid://mbi1fk1dvsti"]
 
 [ext_resource type="Script" uid="uid://gyv3lcrn2nm6" path="res://demo_test_scene_manager/test_scene_1_script/test_scene_1_gd.gd" id="1_xftt1"]
 
-[node name="TestScene1" type="Node2D"]
+[node name="TestScene1" type="Node2D" unique_id=1793970330]
 script = ExtResource("1_xftt1")
 
-[node name="TextureRect" type="ColorRect" parent="."]
+[node name="TextureRect" type="ColorRect" parent="." unique_id=876650481]
 offset_right = 1281.0
 offset_bottom = 721.0
 color = Color(0.64922875, 0.46538514, 0.54959595, 1)
 
-[node name="Label" type="Label" parent="."]
-offset_left = 793.0
-offset_top = 2.0
-offset_right = 1278.0
-offset_bottom = 185.0
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=607279400]
+offset_right = 1279.0
+offset_bottom = 719.0
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=1986831415]
+layout_mode = 2
+theme_override_constants/separation = 30
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1206071946]
+layout_mode = 2
 theme_override_font_sizes/font_size = 64
 text = "scene1"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
-offset_right = 778.0
-offset_bottom = 721.0
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=291589322]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 20
 
-[node name="Button_Main" type="Button" parent="VBoxContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HBoxContainer" unique_id=999113902]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="Button_Main" type="Button" parent="MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer" unique_id=460235415]
 custom_minimum_size = Vector2(200, 60)
 layout_mode = 2
 text = "Button_Main"
 
-[node name="Button_Scene2" type="Button" parent="VBoxContainer"]
+[node name="Button_Scene2" type="Button" parent="MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer" unique_id=412894538]
 custom_minimum_size = Vector2(200, 60)
 layout_mode = 2
 text = "Button_Scene2"
 
-[node name="Button_Back" type="Button" parent="VBoxContainer"]
+[node name="Button_Back" type="Button" parent="MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer" unique_id=985275373]
 custom_minimum_size = Vector2(200, 60)
 layout_mode = 2
 text = "Button_Back"
 
-[node name="Label_Info" type="Label" parent="VBoxContainer"]
+[node name="Label_Info" type="Label" parent="MarginContainer/VBoxContainer/HBoxContainer" unique_id=102247814]
 custom_minimum_size = Vector2(200, 200)
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
 text = "Label_Info"

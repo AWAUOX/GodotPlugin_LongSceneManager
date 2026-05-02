@@ -11,53 +11,81 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_7t0ds")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1880926251]
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=2011529715]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=1880926251]
+layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 20
 alignment = 1
 
-[node name="label_scene" type="Label" parent="VBoxContainer" unique_id=1354464312]
+[node name="label_scene" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1354464312]
 layout_mode = 2
 theme_override_font_sizes/font_size = 46
 text = "Main Scene"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Button_Scene1" type="Button" parent="VBoxContainer" unique_id=952227945]
+[node name="HBoxContainer2" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1914376683]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 30
+
+[node name="HBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HBoxContainer2" unique_id=2086394391]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="Button_Scene1" type="Button" parent="MarginContainer/VBoxContainer/HBoxContainer2/HBoxContainer" unique_id=952227945]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 text = "Button_Scene1"
 
-[node name="Button_Scene2" type="Button" parent="VBoxContainer" unique_id=1701776914]
+[node name="Button_Scene2" type="Button" parent="MarginContainer/VBoxContainer/HBoxContainer2/HBoxContainer" unique_id=1701776914]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 text = "Button_Scene2"
 
-[node name="Button_Preload1" type="Button" parent="VBoxContainer" unique_id=1871497599]
+[node name="Button_Preload1" type="Button" parent="MarginContainer/VBoxContainer/HBoxContainer2/HBoxContainer" unique_id=1871497599]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 text = "Button_Preload1"
 
-[node name="Button_Preload2" type="Button" parent="VBoxContainer" unique_id=227822034]
+[node name="Button_Preload2" type="Button" parent="MarginContainer/VBoxContainer/HBoxContainer2/HBoxContainer" unique_id=227822034]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 text = "Button_Preload2"
 
-[node name="Button_ClearCache" type="Button" parent="VBoxContainer" unique_id=511070651]
+[node name="Button_ClearCache" type="Button" parent="MarginContainer/VBoxContainer/HBoxContainer2/HBoxContainer" unique_id=511070651]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 text = "Button_ClearCache"
 
-[node name="Label_Info" type="Label" parent="VBoxContainer" unique_id=1901530726]
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/VBoxContainer/HBoxContainer2" unique_id=924808146]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HBoxContainer2/ScrollContainer" unique_id=1967072134]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Label_Info" type="Label" parent="MarginContainer/VBoxContainer/HBoxContainer2/ScrollContainer/VBoxContainer" unique_id=1901530726]
 custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 text = "Label_Info"
-horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3

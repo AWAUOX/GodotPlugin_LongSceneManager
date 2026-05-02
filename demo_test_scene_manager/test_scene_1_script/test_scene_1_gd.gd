@@ -8,10 +8,12 @@ const TEST_SCENE_2_PATH = "res://demo_test_scene_manager/test_scene_2.tscn"
 
 var is_first_enter:bool = true
 
-@onready var button_main: Button = $VBoxContainer/Button_Main
-@onready var button_scene2: Button = $VBoxContainer/Button_Scene2
-@onready var button_back: Button = $VBoxContainer/Button_Back
-@onready var label_info: Label = $VBoxContainer/Label_Info
+@onready var button_main: Button = $MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/Button_Main
+@onready var button_scene2: Button = $MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/Button_Scene2
+@onready var button_back: Button = $MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/Button_Back
+@onready var label_info: Label = $MarginContainer/VBoxContainer/HBoxContainer/Label_Info
+
+
 
 
 func _ready():
@@ -39,24 +41,37 @@ func _process(delta: float) -> void:
 	_update_info_label()
 
 func _update_info_label():
-	#LongSceneManager.print_debug_info()
-	#"""更新显示信息"""
 	var cache_info = LongSceneManager.get_cache_info()
-	
+
+	# 处理实例化场景缓存列表
+	var instance_paths = []
+	for s in cache_info.instance_cache.scenes:
+		instance_paths.append(s.path)
+	var instance_list = "\n".join(instance_paths) if not instance_paths.is_empty() else "（empty）"
+
+	# 处理预加载资源缓存列表
+	var preload_list = "\n".join(cache_info.preload_cache.scenes) if not cache_info.preload_cache.scenes.is_empty() else "（empty）"
+
 	label_info.text = """
-    上一个场景: {previous}
-    缓存实例场景数: {cache_count}/{cache_max}
-	缓存最大数值: {cache_max}
-    缓存实例场景列表: {cache_list}
-	预加载资源缓存数量: {preload_cache_size}
-	预加载缓存最大数值: {preload_cache_max}
-	""".format({
-		"previous": LongSceneManager.get_previous_scene_path(),
-		"cache_count": cache_info.instance_cache_size,
-		"cache_max": cache_info.max_size,
-		"cache_list": ",\n ".join(cache_info.access_order),
-		"preload_cache_size": LongSceneManager.preload_resource_cache.size(),
-		"preload_cache_max": LongSceneManager.max_preload_resource_cache_size
+Current Scene: {current}
+Previous Scene: {previous}
+
+[Instance Scene Cache] Count: {instance_count}/{instance_max}
+Scene List:
+{instance_list}
+
+[Preloaded Resource Cache] Count: {preload_count}/{preload_max}
+Resource List:
+{preload_list}
+""".format({
+		"current": cache_info.current_scene,
+		"previous": cache_info.previous_scene,
+		"instance_count": cache_info.instance_cache.size,
+		"instance_max": cache_info.instance_cache.max_size,
+		"instance_list": instance_list,
+		"preload_count": cache_info.preload_cache.size,
+		"preload_max": cache_info.preload_cache.max_size,
+		"preload_list": preload_list
 	})
 	
 

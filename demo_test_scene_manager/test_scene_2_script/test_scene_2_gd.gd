@@ -24,7 +24,6 @@ const TEST_SCENE_5_PATH = "res://demo_test_scene_manager/test_scene_5.tscn"
 
 
 
-@onready var label: Label = $VBoxContainer/HBoxContainer/VBoxContainer2/Label
 @onready var label_info: Label = $VBoxContainer/HBoxContainer/VBoxContainer2/Label_Info
 @onready var progress_bar_preload_scene_3: ProgressBar = $VBoxContainer/VBoxContainer/scene3/ProgressBar_PreloadScene3
 @onready var progress_bar_preload_scene_4: ProgressBar = $VBoxContainer/VBoxContainer/scene4/ProgressBar_PreloadScene4
@@ -70,30 +69,30 @@ func _process(delta):
 	# 场景3进度
 	if scene3_progress > 0 and scene3_progress < 1.0:
 		progress_bar_preload_scene_3.value = scene3_progress * 100
-		label_info.text = "预加载场景3进度: " + str(round(scene3_progress * 100)) + "%"
+		#label_info.text = "预加载场景3进度: " + str(round(scene3_progress * 100)) + "%"
 	elif scene3_progress >= 1.0:
 		progress_bar_preload_scene_3.value = 100
-		label_info.text = "场景3预加载完成"
+		#label_info.text = "场景3预加载完成"
 	else:
 		progress_bar_preload_scene_3.value = 0
 	
 	# 场景4进度
 	if scene4_progress > 0 and scene4_progress < 1.0:
 		progress_bar_preload_scene_4.value = scene4_progress * 100
-		label_info.text = "预加载场景4进度: " + str(round(scene4_progress * 100)) + "%"
+		#label_info.text = "预加载场景4进度: " + str(round(scene4_progress * 100)) + "%"
 	elif scene4_progress >= 1.0:
 		progress_bar_preload_scene_4.value = 100
-		label_info.text = "场景4预加载完成"
+		#label_info.text = "场景4预加载完成"
 	else:
 		progress_bar_preload_scene_4.value = 0
 	
 	# 场景5进度
 	if scene5_progress > 0 and scene5_progress < 1.0:
 		progress_bar_preload_scene_5.value = scene5_progress * 100
-		label_info.text = "预加载场景5进度: " + str(round(scene5_progress * 100)) + "%"
+		#label_info.text = "预加载场景5进度: " + str(round(scene5_progress * 100)) + "%"
 	elif scene5_progress >= 1.0:
 		progress_bar_preload_scene_5.value = 100
-		label_info.text = "场景5预加载完成"
+		#label_info.text = "场景5预加载完成"
 	else:
 		progress_bar_preload_scene_5.value = 0
 
@@ -102,22 +101,37 @@ func _update_info():
 	progress_bar_preload_scene_3.value = 0
 	progress_bar_preload_scene_4.value = 0
 	progress_bar_preload_scene_5.value = 0
-	
+
+	# 处理实例化场景缓存列表
+	var instance_paths = []
+	for s in cache_info.instance_cache.scenes:
+		instance_paths.append(s.path)
+	var instance_list = "\n".join(instance_paths) if not instance_paths.is_empty() else "（empty）"
+
+	# 处理预加载资源缓存列表
+	var preload_list = "\n".join(cache_info.preload_cache.scenes) if not cache_info.preload_cache.scenes.is_empty() else "（empty）"
+
 	label_info.text = """
-     上一个场景: {previous}
-     缓存实例场景数: {cache_count}/{cache_max}
- 	 缓存最大数值: {cache_max}
-     缓存实例场景列表: {cache_list}
- 	 预加载资源缓存数量: {preload_cache_size}
- 	 预加载缓存最大数值: {preload_cache_max}
- 	""".format({
- 		"previous": LongSceneManager.get_previous_scene_path(),
- 		"cache_count": cache_info.instance_cache_size,
- 		"cache_max": cache_info.max_size,
- 		"cache_list": ",\n ".join(cache_info.access_order),
- 		"preload_cache_size": LongSceneManager.preload_resource_cache.size(),
- 		"preload_cache_max": LongSceneManager.max_preload_resource_cache_size
- 	})
+Current Scene: {current}
+Previous Scene: {previous}
+
+[Instance Scene Cache] Count: {instance_count}/{instance_max}
+Scene List:
+{instance_list}
+
+[Preloaded Resource Cache] Count: {preload_count}/{preload_max}
+Resource List:
+{preload_list}
+""".format({
+		"current": cache_info.current_scene,
+		"previous": cache_info.previous_scene,
+		"instance_count": cache_info.instance_cache.size,
+		"instance_max": cache_info.instance_cache.max_size,
+		"instance_list": instance_list,
+		"preload_count": cache_info.preload_cache.size,
+		"preload_max": cache_info.preload_cache.max_size,
+		"preload_list": preload_list
+	})
 
 # 原有切换函数
 func _on_main_pressed():

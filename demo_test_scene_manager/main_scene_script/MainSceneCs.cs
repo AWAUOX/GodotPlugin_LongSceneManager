@@ -20,15 +20,15 @@ public partial class MainSceneCs : Control
 
 	public override void _Ready()
 	{
-		GD.Print("=== Main Scene Loaded (C# Interface) ===");
+		GD.Print("=== Main Scene Loaded (C#) ===");
 
-		// 获取节点引用
-		buttonScene1 = GetNode<Button>("VBoxContainer/Button_Scene1");
-		buttonScene2 = GetNode<Button>("VBoxContainer/Button_Scene2");
-		buttonPreload1 = GetNode<Button>("VBoxContainer/Button_Preload1");
-		buttonPreload2 = GetNode<Button>("VBoxContainer/Button_Preload2");
-		buttonClearCache = GetNode<Button>("VBoxContainer/Button_ClearCache");
-		labelInfo = GetNode<Label>("VBoxContainer/Label_Info");
+		// 获取节点引用（与GDScript路径一致）
+		buttonScene1 = GetNode<Button>("MarginContainer/VBoxContainer/HBoxContainer2/HBoxContainer/Button_Scene1");
+		buttonScene2 = GetNode<Button>("MarginContainer/VBoxContainer/HBoxContainer2/HBoxContainer/Button_Scene2");
+		buttonPreload1 = GetNode<Button>("MarginContainer/VBoxContainer/HBoxContainer2/HBoxContainer/Button_Preload1");
+		buttonPreload2 = GetNode<Button>("MarginContainer/VBoxContainer/HBoxContainer2/HBoxContainer/Button_Preload2");
+		buttonClearCache = GetNode<Button>("MarginContainer/VBoxContainer/HBoxContainer2/HBoxContainer/Button_ClearCache");
+		labelInfo = GetNode<Label>("MarginContainer/VBoxContainer/HBoxContainer2/ScrollContainer/VBoxContainer/Label_Info");
 
 		// 连接按钮信号
 		buttonScene1.Pressed += OnScene1Pressed;
@@ -66,10 +66,7 @@ public partial class MainSceneCs : Control
 
 	private void UpdateInfoLabel()
 	{
-		// 使用已缓存的场景管理器实例，避免在场景切换过程中使用GetNode
-		LongSceneManagerCs.LongSceneManagerCs manager = sceneManager;
-		
-		// 检查manager是否为空，避免空引用异常
+		var manager = sceneManager;
 		if (manager == null)
 		{
 			labelInfo.Text = "场景管理器未找到";
@@ -77,22 +74,28 @@ public partial class MainSceneCs : Control
 		}
 		
 		var cacheInfo = manager.GetCacheInfo();
-
+		
+		// 获取嵌套字典
+		var instanceCache = (Godot.Collections.Dictionary)cacheInfo["instance_cache"];
+		var preloadCache = (Godot.Collections.Dictionary)cacheInfo["preload_cache"];
+		
+		var instanceAccessOrder = (Godot.Collections.Array)instanceCache["access_order"];
+		
 		labelInfo.Text = string.Format(@"
-当前场景: Main Scene (C# Interface)
-上一个场景: {0}
-缓存实例场景数: {1}/{2}
-缓存最大数值: {3}
-缓存实例场景列表: {4}
-预加载资源缓存数量: {5}
-预加载缓存最大数值: {6}",
+Current Scene: Main Scene (C#)
+Previous Scene: {0}
+
+[Instance Scene Cache] Count: {1}/{2}
+Scene List:
+{3}
+
+[Preloaded Resource Cache] Count: {4}/{5}",
 			manager.GetPreviousScenePath(),
-			cacheInfo["instance_cache_size"],
-			cacheInfo["max_size"],
-			cacheInfo["max_size"],
-			string.Join(",\n ", (string[])cacheInfo["access_order"]),
-			((Godot.Collections.Array)cacheInfo["preload_resource_cache"]).Count,
-			cacheInfo["max_preload_resource_cache_size"]);
+			instanceCache["size"],
+			instanceCache["max_size"],
+			string.Join("\n", instanceAccessOrder),
+			preloadCache["size"],
+			preloadCache["max_size"]);
 	}
 
 	private void OnScene1Pressed()

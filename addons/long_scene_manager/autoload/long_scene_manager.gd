@@ -1,20 +1,22 @@
 # long_scene_manager.gd
 extends Node
 
-# 全局场景管理器插件
-# 支持自定义加载屏幕的场景切换、预加载和LRU缓存
-# 场景树和缓存分离设计:场景实例要么在场景树中，要么在缓存中
+# Global scene manager plugin. 全局场景管理器插件
+# Supports scene switching with custom loading screens, preloading, and LRU cache. 支持自定义加载屏幕的场景切换、预加载和LRU缓存
+# Scene tree and cache separation: instances are either in scene tree or in cache. 场景树和缓存分离设计:场景实例要么在场景树中，要么在缓存中
 
+# ==================== Constants and Enums ====================
 # ==================== 常量和枚举 ====================
 
 const DEFAULT_LOAD_SCREEN_PATH = "res://addons/long_scene_manager/ui/loading_screen/GDscript/loading_black_screen.tscn"
 
 enum LoadState {
-	NOT_LOADED,      # 未加载
-	LOADING,         # 正在加载中
-	LOADED          # 已加载（资源已加载但未实例化）
+	NOT_LOADED,      # Not loaded. 未加载
+	LOADING,         # Loading in progress. 正在加载中
+	LOADED          # Loaded (resource loaded but not instantiated). 已加载（资源已加载但未实例化）
 }
 
+# ==================== Signal Definitions ====================
 # ==================== 信号定义 ====================
 
 signal scene_preload_started(scene_path: String)
@@ -37,6 +39,7 @@ signal scene_preload_failed(scene_path: String)
 
 signal scene_switch_failed(scene_path: String)
 
+# ==================== Exported Variables ====================
 # ==================== 导出变量 ====================
 
 @export_category("Scene Manager Global Configuration")
@@ -50,6 +53,7 @@ signal scene_switch_failed(scene_path: String)
 
 @export_range(1, 10) var instantiate_frames: int = 3
 
+# ==================== Internal State Variables ====================
 # ==================== 内部状态变量 ====================
 
 var current_scene: Node = null
@@ -76,28 +80,34 @@ var _is_switching: bool = false
 
 var _scenes_to_reset: Dictionary = {}
 
-# 记录被移除的场景，防止重新进入缓存
+# Track removed scenes to prevent re-entering cache. 记录被移除的场景，防止重新进入缓存
 var _removed_scenes: Dictionary = {}
 
+# Get or create preload state for scene. 获取或创建场景的预加载状态。
 func _get_preload_state(scene_path: String) -> Dictionary:
 	if not _preload_states.has(scene_path):
 		_preload_states[scene_path] = {"state": LoadState.NOT_LOADED, "resource": null}
 	return _preload_states[scene_path]
 
+# Clear preload state for scene. 清除场景的预加载状态。
 func _clear_preload_state(scene_path: String) -> void:
 	if _preload_states.has(scene_path):
 		_preload_states.erase(scene_path)
 
+# Cached scene data structure. 缓存场景数据结构
 class CachedScene:
 	var scene_instance: Node
 	var cached_time: float
 
+	# Initialize cached scene with instance and timestamp. 用实例和时间戳初始化缓存场景
 	func _init(scene: Node):
 		scene_instance = scene
 		cached_time = Time.get_unix_time_from_system()
 
+# ==================== Lifecycle Functions ====================
 # ==================== 生命周期函数 ====================
 
+# Initialize scene manager on node ready. 节点就绪时初始化场景管理器。
 func _ready():
 	print("[SceneManager] Scene manager singleton initialized")
 	
@@ -110,8 +120,10 @@ func _ready():
 	
 	print("[SceneManager] Initialization complete, max cache: ", max_cache_size)
 
+# ==================== Initialization Functions ====================
 # ==================== 初始化函数 ====================
 
+# Initialize default loading screen. 初始化默认加载屏幕。
 func _init_default_load_screen():
 	print("[SceneManager] Initializing default loading screen")
 	
@@ -138,6 +150,7 @@ func _init_default_load_screen():
 	
 	print("[SceneManager] Simple loading screen creation completed")
 
+# Create a simple loading screen as fallback. 创建简单加载屏幕作为后备。
 func _create_simple_load_screen() -> Node:
 	var canvas_layer = CanvasLayer.new()
 	canvas_layer.name = "SimpleLoadScreen"
@@ -171,8 +184,10 @@ func _create_simple_load_screen() -> Node:
 	
 	return canvas_layer
 
+# ==================== Public API - Scene Switching ====================
 # ==================== 公开API - 场景切换 ====================
 
+# Switch to target scene with optional cache and load screen. 切换到目标场景，可选择使用缓存和加载屏幕。
 func switch_scene(new_scene_path: String, use_cache: bool = true, load_screen_path: String = "") -> void:
 	if _is_switching:
 		push_warning("[SceneManager] Warning: Scene switch already in progress, ignoring request to: ", new_scene_path)
@@ -223,8 +238,10 @@ func switch_scene(new_scene_path: String, use_cache: bool = true, load_screen_pa
 	
 	_is_switching = false
 
+# ==================== Public API - Preloading ====================
 # ==================== 公开API - 预加载 ====================
 
+# Preload scene resource asynchronously. 异步预加载场景资源。
 func preload_scene(scene_path: String) -> void:
 	if not ResourceLoader.exists(scene_path):
 		push_error("[SceneManager] Error: Preload scene path does not exist: ", scene_path)
@@ -250,15 +267,18 @@ func preload_scene(scene_path: String) -> void:
 	
 	_preload_background(scene_path)
 
+# Preload multiple scenes at once. 批量预加载多个场景。
 func preload_scenes(scene_paths: Array[String]) -> void:
 	for path in scene_paths:
 		preload_scene(path)
 
+# Cancel scene preloading if in progress. 取消正在进行的场景预加载。
 func cancel_preload_scene(scene_path: String) -> void:
 	if _preload_states.has(scene_path) and _preload_states[scene_path]["state"] == LoadState.LOADING:
 		_clear_preload_state(scene_path)
 		print("[SceneManager] Cancelled preload: ", scene_path)
 
+# Cancel all scenes that are currently preloading. 取消所有正在预加载的场景。
 func cancel_all_preloads() -> void:
 	var to_cancel = []
 	for path in _preload_states:
@@ -268,6 +288,7 @@ func cancel_all_preloads() -> void:
 	for path in to_cancel:
 		cancel_preload_scene(path)
 
+# Handle background preload completion and cache. 处理后台预加载完成并缓存。
 func _preload_background(scene_path: String) -> void:
 	if use_async_loading:
 		await _async_preload_scene(scene_path)
@@ -299,8 +320,10 @@ func _preload_background(scene_path: String) -> void:
 		scene_preload_failed.emit(scene_path)
 		print("[SceneManager] Preloading failed: ", scene_path)
 
+# ==================== Public API - Cache Management ====================
 # ==================== 公开API - 缓存管理 ====================
 
+# Clear all cached scenes and preload resources. 清除所有缓存场景和预加载资源。
 func clear_cache() -> void:
 	print("[SceneManager] Clearing cache...")
 	
@@ -326,8 +349,9 @@ func clear_cache() -> void:
 	
 	print("[SceneManager] Cache cleared")
 
+# Remove preloaded resource from cache. 从缓存中移除预加载的资源。
 func remove_preloaded_resource(scene_path: String) -> void:
-	# 只清理预加载资源缓存及相关状态
+	# Only cleanup preload resource cache and related states. 只清理预加载资源缓存及相关状态
 	if preload_resource_cache.has(scene_path) or _preload_states.has(scene_path):
 		preload_resource_cache.erase(scene_path)
 		
@@ -335,7 +359,7 @@ func remove_preloaded_resource(scene_path: String) -> void:
 		if index != -1:
 			preload_resource_cache_access_order.remove_at(index)
 		
-		# 清除预加载状态，防止状态残留导致无法重新预加载
+		# Clear preload state to prevent residue from blocking re-preload. 清除预加载状态，防止状态残留导致无法重新预加载
 		_clear_preload_state(scene_path)
 		
 		print("[SceneManager] Removed preloaded resource: ", scene_path)
@@ -345,8 +369,9 @@ func remove_preloaded_resource(scene_path: String) -> void:
 		if scene_cache.has(scene_path):
 			print("[SceneManager] Hint: Scene is in instance cache. Use 'remove_cached_scene()' to remove instance cache.")
 
+# Remove cached scene instance from cache. 从缓存中移除已缓存的场景实例。
 func remove_cached_scene(scene_path: String) -> void:
-	# 只清理实例化场景缓存及相关状态
+	# Only cleanup instantiated scene cache and related states. 只清理实例化场景缓存及相关状态
 	if scene_cache.has(scene_path):
 		var cached = scene_cache[scene_path]
 
@@ -360,7 +385,7 @@ func remove_cached_scene(scene_path: String) -> void:
 		if index != -1:
 			cache_access_order.remove_at(index)
 		
-		# 清除可能残留的预加载状态
+		# Clear any residual preload state. 清除可能残留的预加载状态
 		_clear_preload_state(scene_path)
 
 		print("[SceneManager] Removed cached scene: ", scene_path)
@@ -370,8 +395,9 @@ func remove_cached_scene(scene_path: String) -> void:
 		if preload_resource_cache.has(scene_path):
 			print("[SceneManager] Hint: Scene is in preload resource cache. Use 'remove_preloaded_resource()' to remove preload cache.")
 
+# Get detailed cache information for debugging. 获取详细的缓存信息用于调试。
 func get_cache_info() -> Dictionary:
-	# 实例化场景缓存板块
+	# Instance cache section. 实例化场景缓存板块
 	var cached_scenes = []
 	for path in scene_cache:
 		var cached = scene_cache[path]
@@ -381,23 +407,23 @@ func get_cache_info() -> Dictionary:
 			"instance_valid": is_instance_valid(cached.scene_instance)
 		})
 
-	# 预加载资源缓存板块
+	# Preload resource cache section. 预加载资源缓存板块
 	var preloaded_scenes = []
 	for path in preload_resource_cache:
 		preloaded_scenes.append(path)
 
-	# 正在预加载的场景
+	# Scenes currently preloading. 正在预加载的场景
 	var preloading_scenes = []
 	for path in _preload_states:
 		if _preload_states[path]["state"] == LoadState.LOADING:
 			preloading_scenes.append(path)
 
 	return {
-		# 基本信息
+			# Basic info. 基本信息
 		"current_scene": current_scene_path,
 		"previous_scene": previous_scene_path,
 
-		# 实例化场景缓存板块
+		# Instance cache section. 实例化场景缓存板块
 		"instance_cache": {
 			"size": scene_cache.size(),
 			"max_size": max_cache_size,
@@ -405,7 +431,7 @@ func get_cache_info() -> Dictionary:
 			"scenes": cached_scenes
 		},
 
-		# 预加载资源缓存板块
+		# Preload resource cache section. 预加载资源缓存板块
 		"preload_cache": {
 			"size": preload_resource_cache.size(),
 			"max_size": max_preload_resource_cache_size,
@@ -413,25 +439,30 @@ func get_cache_info() -> Dictionary:
 			"scenes": preloaded_scenes
 		},
 
-		# 正在预加载的场景
+		# Scenes currently preloading. 正在预加载的场景
 		"preloading_scenes": preloading_scenes
 	}
 
+# Check if scene is in any cache. 检查场景是否在任意缓存中。
 func is_scene_cached(scene_path: String) -> bool:
 	return scene_cache.has(scene_path) or preload_resource_cache.has(scene_path)
 
+# Check if scene is currently preloading. 检查场景是否正在预加载。
 func is_scene_preloading(scene_path: String) -> bool:
 	return _preload_states.has(scene_path) and _preload_states[scene_path]["state"] == LoadState.LOADING
 
+# Mark scene to be reset on next switch. 标记场景在下次切换时重置。
 func mark_scene_for_reset(scene_path: String) -> void:
 	_scenes_to_reset[scene_path] = true
 	print("[SceneManager] Scene marked for reset on next switch: ", scene_path)
 
+# Unmark scene from reset on next switch. 取消标记场景在下次切换时重置。
 func unmark_scene_for_reset(scene_path: String) -> void:
 	if _scenes_to_reset.has(scene_path):
 		_scenes_to_reset.erase(scene_path)
 		print("[SceneManager] Scene unmarked for reset: ", scene_path)
 
+# Get list of scenes currently preloading. 获取当前正在预加载的场景列表。
 func get_preloading_scenes() -> Array:
 	var loading = []
 	for path in _preload_states:
@@ -439,14 +470,18 @@ func get_preloading_scenes() -> Array:
 			loading.append(path)
 	return loading
 
+# ==================== Public API - Utility Functions ====================
 # ==================== 公开API - 实用函数 ====================
 
+# Get current active scene node. 获取当前活动场景节点。
 func get_current_scene() -> Node:
 	return current_scene
 
+# Get previous scene path. 获取上一个场景路径。
 func get_previous_scene_path() -> String:
 	return previous_scene_path
 
+# Get loading progress for preloading scene. 获取预加载场景的加载进度。
 func get_loading_progress(scene_path: String) -> float:
 	if _preload_states.has(scene_path):
 		var state = _preload_states[scene_path]["state"]
@@ -461,6 +496,7 @@ func get_loading_progress(scene_path: String) -> float:
 	
 	return 1.0 if (scene_cache.has(scene_path) or preload_resource_cache.has(scene_path)) else 0.0
 
+# Set maximum instance cache size and trim if needed. 设置实例缓存最大大小并在需要时修剪。
 func set_max_cache_size(new_size: int) -> void:
 	if new_size < 1:
 		push_error("[SceneManager] Error: Cache size must be greater than 0")
@@ -472,6 +508,7 @@ func set_max_cache_size(new_size: int) -> void:
 	while cache_access_order.size() > max_cache_size:
 		_remove_oldest_cached_scene()
 
+# Set maximum preload cache size and trim if needed. 设置预加载缓存最大大小并在需要时修剪。
 func set_max_preload_resource_cache_size(new_size: int) -> void:
 	if new_size < 1:
 		push_error("[SceneManager] Error: Preload resource cache size must be greater than 0")
@@ -483,8 +520,10 @@ func set_max_preload_resource_cache_size(new_size: int) -> void:
 	while preload_resource_cache_access_order.size() > max_preload_resource_cache_size:
 		_remove_oldest_preload_resource()
 
+# ==================== Loading Screen Management ====================
 # ==================== 加载屏幕管理 ====================
 
+# Get or create load screen instance. 获取或创建加载屏幕实例。
 func _get_load_screen_instance(load_screen_path: String) -> Node:
 	if load_screen_path == "":
 		if default_load_screen:
@@ -511,6 +550,7 @@ func _get_load_screen_instance(load_screen_path: String) -> Node:
 			print("[SceneManager] Warning: Custom loading screen path does not exist, using default")
 			return default_load_screen
 
+# Show load screen with optional fade-in effect. 显示加载屏幕，可选淡入效果。
 func _show_load_screen(load_screen_instance: Node) -> void:
 	if not load_screen_instance:
 		print("[SceneManager] No loading screen, switching directly")
@@ -534,6 +574,7 @@ func _show_load_screen(load_screen_instance: Node) -> void:
 	load_screen_shown.emit(load_screen_instance)
 	print("[SceneManager] Loading screen display completed")
 
+# Hide load screen with optional fade-out effect. 隐藏加载屏幕，可选淡出效果。
 func _hide_load_screen(load_screen_instance: Node) -> void:
 	if not load_screen_instance:
 		return
@@ -559,8 +600,10 @@ func _hide_load_screen(load_screen_instance: Node) -> void:
 	load_screen_hidden.emit(load_screen_instance)
 	print("[SceneManager] Loading screen hiding completed")
 
+# ==================== Scene Switch Handlers ====================
 # ==================== 场景切换处理函数 ====================
 
+# Handle switch using preloaded resource. 处理使用预加载资源的场景切换。
 func _handle_preloaded_resource(scene_path: String, load_screen_instance: Node, use_cache: bool) -> void:
 	await _show_load_screen(load_screen_instance)
 
@@ -588,6 +631,7 @@ func _handle_preloaded_resource(scene_path: String, load_screen_instance: Node, 
 
 	await _perform_scene_switch(new_scene, scene_path, load_screen_instance, use_cache)
 
+# Handle switch while scene is preloading. 处理场景正在预加载时的切换。
 func _handle_preloading_scene(scene_path: String, load_screen_instance: Node, use_cache: bool) -> void:
 	await _show_load_screen(load_screen_instance)
 
@@ -621,14 +665,17 @@ func _handle_preloading_scene(scene_path: String, load_screen_instance: Node, us
 
 	await _instantiate_and_switch(scene_path, load_screen_instance, use_cache)
 
+# Handle switch using cached scene instance. 处理使用缓存场景实例的切换。
 func _handle_cached_scene(scene_path: String, load_screen_instance: Node) -> void:
 	await _show_load_screen(load_screen_instance)
 	await _switch_to_cached_scene(scene_path, load_screen_instance)
 
+# Handle direct scene load without cache. 处理不通过缓存的直接场景加载。
 func _handle_direct_load(scene_path: String, load_screen_instance: Node, use_cache: bool) -> void:
 	await _show_load_screen(load_screen_instance)
 	await _load_and_switch(scene_path, load_screen_instance, use_cache)
 
+# Instantiate scene across multiple frames to avoid stalls. 跨多帧实例化场景以避免卡顿。
 func _instantiate_scene_deferred(packed_scene: PackedScene, load_screen_instance: Node = null) -> Node:
 	if instantiate_frames <= 1:
 		return packed_scene.instantiate()
@@ -677,6 +724,7 @@ func _instantiate_scene_deferred(packed_scene: PackedScene, load_screen_instance
 	
 	return instance
 
+# Collect all children nodes recursively. 递归收集所有子节点。
 func _collect_children_recursive(root: Node) -> Array:
 	var result = [root]
 	var queue = [root]
@@ -687,6 +735,7 @@ func _collect_children_recursive(root: Node) -> Array:
 			queue.append(child)
 	return result
 
+# Instantiate preloaded scene and perform switch. 实例化预加载场景并执行切换。
 func _instantiate_and_switch(scene_path: String, load_screen_instance: Node, use_cache: bool) -> void:
 	if not preload_resource_cache.has(scene_path):
 		push_error("[SceneManager] Preloaded resource does not exist: ", scene_path)
@@ -697,7 +746,7 @@ func _instantiate_and_switch(scene_path: String, load_screen_instance: Node, use
 	print("[SceneManager] Instantiating preloaded scene: ", scene_path)
 
 	var packed_scene = preload_resource_cache.get(scene_path)
-	# 从预加载缓存移除（参考 _handle_preloaded_resource 的正确做法）
+	# Remove from preload cache (reference correct approach from _handle_preloaded_resource). 从预加载缓存移除（参考 _handle_preloaded_resource 的正确做法）
 	preload_resource_cache.erase(scene_path)
 	var index = preload_resource_cache_access_order.find(scene_path)
 	if index != -1:
@@ -712,8 +761,10 @@ func _instantiate_and_switch(scene_path: String, load_screen_instance: Node, use
 
 	await _perform_scene_switch(new_scene, scene_path, load_screen_instance, use_cache)
 
+# ==================== Core Loading and Switching Functions ====================
 # ==================== 加载和切换核心函数 ====================
 
+# Switch to scene from instance cache. 从实例缓存切换到场景。
 func _switch_to_cached_scene(scene_path: String, load_screen_instance: Node) -> void:
 	if not scene_cache.has(scene_path):
 		push_error("[SceneManager] Scene not found in cache: ", scene_path)
@@ -744,6 +795,7 @@ func _switch_to_cached_scene(scene_path: String, load_screen_instance: Node) -> 
 	
 	await _perform_scene_switch(scene_instance, scene_path, load_screen_instance, true)
 
+# Load scene resource and perform switch. 加载场景资源并执行切换。
 func _load_and_switch(scene_path: String, load_screen_instance: Node, use_cache: bool) -> void:
 	print("[SceneManager] Loading scene: ", scene_path)
 
@@ -763,6 +815,7 @@ func _load_and_switch(scene_path: String, load_screen_instance: Node, use_cache:
 
 	await _perform_scene_switch(new_scene, scene_path, load_screen_instance, use_cache)
 
+# Core function to swap old scene with new scene. 核心函数：用新场景替换旧场景。
 func _perform_scene_switch(new_scene: Node, new_scene_path: String, load_screen_instance: Node, use_cache: bool) -> void:
 	print("[SceneManager] Performing scene switch to: ", new_scene_path)
 
@@ -780,7 +833,7 @@ func _perform_scene_switch(new_scene: Node, new_scene_path: String, load_screen_
 			old_scene.get_parent().remove_child(old_scene)
 
 		if _scenes_to_reset.has(old_scene_path):
-			# 场景被标记为重置：释放实例，重新加载为资源保存到预加载缓存
+			# Scene marked for reset: free instance and reload as resource to preload cache. 场景被标记为重置：释放实例，重新加载为资源保存到预加载缓存
 			print("[SceneManager] Scene marked for reset, reloading as resource: ", old_scene_path)
 			_cleanup_orphaned_nodes(old_scene)
 			old_scene.queue_free()
@@ -811,8 +864,10 @@ func _perform_scene_switch(new_scene: Node, new_scene_path: String, load_screen_
 	scene_switch_completed.emit(new_scene_path)
 	print("[SceneManager] Scene switching completed: ", new_scene_path)
 
+# ==================== Internal Cache Management Functions ====================
 # ==================== 缓存管理内部函数 ====================
 
+# Add scene instance to LRU cache. 将场景实例添加到LRU缓存。
 func _add_to_cache(scene_path: String, scene_instance: Node) -> void:
 	if scene_path == "" or not scene_instance:
 		print("[SceneManager] Warning: Cannot cache empty scene or path")
@@ -845,6 +900,7 @@ func _add_to_cache(scene_path: String, scene_instance: Node) -> void:
 	if cache_access_order.size() > max_cache_size:
 		_remove_oldest_cached_scene()
 
+# Remove oldest scene from instance cache (LRU). 从实例缓存移除最旧的场景（LRU）。
 func _remove_oldest_cached_scene() -> void:
 	if cache_access_order.size() == 0:
 		return
@@ -861,6 +917,7 @@ func _remove_oldest_cached_scene() -> void:
 		scene_removed_from_cache.emit(oldest_path)
 		print("[SceneManager] Removing old cache: ", oldest_path)
 
+# Remove oldest resource from preload cache (LRU). 从预加载缓存移除最旧的资源（LRU）。
 func _remove_oldest_preload_resource() -> void:
 	if preload_resource_cache_access_order.size() == 0:
 		return
@@ -872,6 +929,7 @@ func _remove_oldest_preload_resource() -> void:
 		preload_resource_cache.erase(oldest_path)
 		print("[SceneManager] Removing old preload resource: ", oldest_path)
 
+# Reload scene as resource and cache it. 重新加载场景为资源并缓存。
 func _reset_scene_as_resource(scene_path: String) -> void:
 	print("[SceneManager] Resetting scene as resource: ", scene_path)
 	
@@ -887,13 +945,16 @@ func _reset_scene_as_resource(scene_path: String) -> void:
 	if preload_resource_cache_access_order.size() > max_preload_resource_cache_size:
 		_remove_oldest_preload_resource()
 
+# ==================== Internal Preload Functions ====================
 # ==================== 预加载内部函数 ====================
 
+# Asynchronously preload scene using threaded loading. 使用线程加载异步预加载场景。
 func _async_preload_scene(scene_path: String) -> void:
 	print("[SceneManager] Asynchronous preload: ", scene_path)
 	
 	var load_start_time = Time.get_ticks_msec()
-	ResourceLoader.load_threaded_request(scene_path)
+	#ResourceLoader.load_threaded_request(scene_path)
+	ResourceLoader.load_threaded_request(scene_path, "", false, ResourceLoader.CACHE_MODE_IGNORE)
 	
 	while true:
 		var status = ResourceLoader.load_threaded_get_status(scene_path)
@@ -927,13 +988,16 @@ func _async_preload_scene(scene_path: String) -> void:
 				preload_state["resource"] = null
 				return
 
+# Synchronously preload scene on main thread. 在主线程同步预加载场景。
 func _sync_preload_scene(scene_path: String) -> void:
 	print("[SceneManager] Synchronous preload: ", scene_path)
 	var preload_state = _get_preload_state(scene_path)
 	preload_state["resource"] = load(scene_path)
 
+# ==================== Orphaned Node Cleanup Functions ====================
 # ==================== 孤立节点清理函数 ====================
 
+# Recursively remove node from parent and cleanup. 递归从父节点移除节点并清理。
 func _cleanup_orphaned_nodes(root_node: Node) -> void:
 	if not root_node or not is_instance_valid(root_node):
 		return
@@ -946,6 +1010,7 @@ func _cleanup_orphaned_nodes(root_node: Node) -> void:
 	for child in root_node.get_children():
 		_cleanup_orphaned_nodes(child)
 
+# Validate scene tree state for debugging. 验证场景树状态用于调试。
 func _debug_validate_scene_tree() -> void:
 	var root = get_tree().root
 	var current = get_tree().current_scene
@@ -958,8 +1023,10 @@ func _debug_validate_scene_tree() -> void:
 		if is_instance_valid(cached.scene_instance) and cached.scene_instance.is_inside_tree():
 			push_error("[SceneManager] Error: Cached node still in scene tree: ", scene_path)
 
+# ==================== Signal Connection Helpers ====================
 # ==================== 信号连接辅助 ====================
 
+# Auto-connect all scene manager signals to target. 自动连接所有场景管理器信号到目标。
 func connect_all_signals(target: Object) -> void:
 	if not target:
 		return
@@ -973,8 +1040,10 @@ func connect_all_signals(target: Object) -> void:
 			connect(signal_name, Callable(target, method_name))
 			print("[SceneManager] Connecting signal: ", signal_name, " -> ", method_name)
 
+# ==================== Debug and Utility Functions ====================
 # ==================== 调试和工具函数 ====================
 
+# Print detailed debug information to console. 打印详细的调试信息到控制台。
 func print_debug_info() -> void:
 	print("\n=== SceneManager Debug Info ===")
 	print("Current scene: ", current_scene_path if current_scene else "None")

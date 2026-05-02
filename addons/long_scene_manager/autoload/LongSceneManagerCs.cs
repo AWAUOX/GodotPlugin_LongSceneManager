@@ -47,8 +47,7 @@ namespace LongSceneManagerCs
 		{
 			NotLoaded,      // 未加载 // Not loaded
 			Loading,        // 正在加载中 // Loading in progress
-			Loaded,         // 已加载（资源已加载但未实例化） // Loaded (resource loaded but not instantiated)
-			Instantiated    // 已实例化（场景对象已创建） // Instantiated (scene object created)
+			Loaded         // 已加载（资源已加载但未实例化） // Loaded (resource loaded but not instantiated)
 		}
 		
 		#endregion
@@ -88,6 +87,14 @@ namespace LongSceneManagerCs
 		// Loading screen hidden signal
 		[Signal] public delegate void LoadScreenHiddenEventHandler(Node loadScreenInstance);
 		
+		// 预加载失败信号
+		// Preload failed signal
+		[Signal] public delegate void ScenePreloadFailedEventHandler(string scenePath);
+		
+		// 场景切换失败信号
+		// Scene switch failed signal
+		[Signal] public delegate void SceneSwitchFailedEventHandler(string scenePath);
+		
 		#endregion
 		
 		#region Export Variables
@@ -102,24 +109,29 @@ namespace LongSceneManagerCs
 		// Export variable, allows setting in editor, range limited to 1-20
 		[Export(PropertyHint.Range, "1,20")] 
 		private int _maxCacheSize = 8;     // 最大缓存场景数量，默认为8个
-		                               // Maximum number of cached scenes, default is 8
+									   // Maximum number of cached scenes, default is 8
 		
 		// 导出变量，允许在编辑器中设置预加载资源缓存的最大容量，限制范围为1-50
 		// Export variable, allows setting maximum capacity of preload resource cache in editor, range limited to 1-50
 		[Export(PropertyHint.Range, "1,50")]
 		private int _maxPreloadResourceCacheSize = 20; // 预加载资源缓存最大容量，默认为20个
-		                                           // Maximum preload resource cache capacity, default is 20
+												   // Maximum preload resource cache capacity, default is 20
 		
 		// 导出布尔值变量，可在编辑器中设置
 		// Export boolean variable, can be set in editor
 		[Export] 
 		private bool _useAsyncLoading = true;  // 是否使用异步加载，默认开启
-		                                   // Whether to use asynchronous loading, enabled by default
+										   // Whether to use asynchronous loading, enabled by default
 		
 		// 总是使用默认加载屏幕
 		// Always use default loading screen
 		[Export] 
 		private bool _alwaysUseDefaultLoadScreen = false;
+
+		// 跨多帧实例化场景的帧数，用于避免卡顿
+		// Number of frames to spread scene instantiation across, to avoid stalls
+		[Export(PropertyHint.Range, "1,10")]
+		private int _instantiateFrames = 3;
 
 		//静态实例引用
 		// Static instance reference
@@ -137,12 +149,8 @@ namespace LongSceneManagerCs
 		private Node _defaultLoadScreen;                // 默认加载屏幕实例 // Default loading screen instance
 		private Node _activeLoadScreen;                 // 当前激活的加载屏幕实例 // Currently active loading screen instance
 		
-		private string _loadingScenePath = "";          // 正在加载的场景路径 // Path of the scene currently being loaded
-		private LoadState _loadingState = LoadState.NotLoaded;  // 当前加载状态 // Current loading state
-		private PackedScene _loadingResource;           // 正在加载的场景资源 // Scene resource currently being loaded
-		
-		// 存储从场景树移除的节点实例（场景缓存）
-		// Store node instances removed from the scene tree (scene cache)
+		// 场景缓存：存储从场景树移除的节点实例
+		// Scene cache: store node instances removed from the scene tree
 		private readonly System.Collections.Generic.Dictionary<string, CachedScene> _sceneCache = new();
 		
 		// LRU缓存访问顺序记录（最近最少使用算法）
@@ -157,6 +165,57 @@ namespace LongSceneManagerCs
 		// LRU access order record for preload resource cache
 		private readonly List<string> _preloadResourceCacheAccessOrder = new();
 		
+		// 预加载状态追踪：支持同时追踪多个场景的预加载状态
+		// Preload state tracking: support tracking multiple scenes' preload states simultaneously
+		private readonly System.Collections.Generic.Dictionary<string, PreloadState> _preloadStates = new();
+		
+		#region Preload State Management
+		// 预加载状态管理
+		
+		/// <summary>
+		/// 获取或创建场景的预加载状态
+		/// 
+		/// Get or create preload state for scene
+		/// </summary>
+		/// <param name="scenePath">场景路径 // Scene path</param>
+		/// <returns>预加载状态对象 // Preload state object</returns>
+		private PreloadState GetPreloadState(string scenePath)
+		{
+			if (!_preloadStates.ContainsKey(scenePath))
+			{
+				_preloadStates[scenePath] = new PreloadState();
+			}
+			return _preloadStates[scenePath];
+		}
+		
+		/// <summary>
+		/// 清除场景的预加载状态
+		/// 
+		/// Clear preload state for scene
+		/// </summary>
+		/// <param name="scenePath">场景路径 // Scene path</param>
+		private void ClearPreloadState(string scenePath)
+		{
+			if (_preloadStates.ContainsKey(scenePath))
+			{
+				_preloadStates.Remove(scenePath);
+			}
+		}
+		
+		#endregion
+		
+		// 场景切换标志：防止并发场景切换
+		// Scene switching flag: prevent concurrent scene switching
+		private bool _isSwitching = false;
+		
+		// 需要重置的场景集合：标记后下次切换时会重置
+		// Scenes to reset: marked scenes will be reset on next switch
+		private readonly System.Collections.Generic.Dictionary<string, bool> _scenesToReset = new();
+		
+		// 记录被移除的场景，防止重新进入缓存（预留功能）
+		// Track removed scenes to prevent re-entering cache (reserved feature)
+		private readonly System.Collections.Generic.Dictionary<string, bool> _removedScenes = new();
+		
 		#endregion
 		
 		#region Lifecycle Functions
@@ -164,18 +223,19 @@ namespace LongSceneManagerCs
 		
 		// Godot节点生命周期函数，在节点添加到场景树后调用一次
 		// Godot node lifecycle function, called once after node is added to the scene tree
-		public override void _Ready()
-		{
-			GD.Print("[SceneManager] Scene manager singleton initialized");
-			// Scene manager singleton initialization
-			
-			//初始化静态实例引用
-			// Initialize static instance reference
-			_instance = this;
+	public override void _Ready()
+	{
+		GD.Print("[SceneManager] Scene manager singleton initialized");
+		// Scene manager singleton initialization
+		
+		//初始化静态实例引用
+		// Initialize static instance reference
+		_instance = this;
 
-			// 初始化默认加载屏幕
-			// Initialize default loading screen
-			InitDefaultLoadScreen();
+		// 初始化默认加载屏幕
+		// Initialize default loading screen
+		GD.Print("[SceneManager] Calling InitDefaultLoadScreen...");
+		InitDefaultLoadScreen();
 			
 			// 获取当前场景
 			// Get current scene
@@ -199,9 +259,9 @@ namespace LongSceneManagerCs
 		// 场景实例引用
 		/// <summary>
 		/// 初始化场景实例引用
-        /// 
+		/// 
 		/// Initialize scene instance reference
-        /// 
+		/// 
 		/// </summary>
 		public static LongSceneManagerCs Instance => _instance;
 		// #endregion 场景实例引用
@@ -293,7 +353,7 @@ namespace LongSceneManagerCs
 			var canvasLayer = new CanvasLayer();
 			canvasLayer.Name = "SimpleLoadScreen";
 			canvasLayer.Layer = 1000;  // 设置层级为1000，确保显示在最前面
-			                       // Set layer to 1000 to ensure it displays in front
+								   // Set layer to 1000 to ensure it displays in front
 			
 			// 创建全屏黑色矩形
 			// Create full-screen black rectangle
@@ -346,8 +406,33 @@ namespace LongSceneManagerCs
 		/// <param name="useCache">是否使用缓存机制，默认为true // Whether to use caching mechanism, default is true</param>
 		/// <param name="loadScreenPath">自定义加载屏幕路径，为空则使用默认加载屏幕 // Custom loading screen path, empty to use default loading screen</param>
 		/// <returns>异步任务 // Async task</returns>
-		public async Task SwitchScene(string newScenePath, bool useCache = true, string loadScreenPath = "")
+		/// <summary>
+		/// 专供GDScript调用的场景切换方法（非异步包装）
+		/// 
+		/// Scene switching method specifically for GDScript calls (non-async wrapper)
+		/// </summary>
+		/// <param name="newScenePath">要切换到的新场景路径 // New scene path to switch to</param>
+		/// <param name="useCache">是否使用缓存机制，默认为true // Whether to use caching mechanism, default is true</param>
+		/// <param name="loadScreenPath">自定义加载屏幕路径，为空则使用默认加载屏幕 // Custom loading screen path, empty to use default loading screen</param>
+		public void SwitchSceneGD(string newScenePath, bool useCache = true, string loadScreenPath = "")
 		{
+			// 调用异步方法，但不等待其结果
+			// Call async method but don't wait for its result
+			_ = SwitchScene(newScenePath, useCache, loadScreenPath);
+		}
+		
+		public async Task SwitchScene(string newScenePath, bool useCache = true, string loadScreenPath = "")
+	{
+			// 检查是否正在切换中，防止并发场景切换
+			// Check if already switching, prevent concurrent scene switching
+			if (_isSwitching)
+			{
+				GD.Print($"[SceneManager] Warning: Scene switch already in progress, ignoring request to: {newScenePath}");
+				// Warning: Scene switch already in progress, ignoring request to:
+				return;
+			}
+			
+			_isSwitching = true;
 			GD.Print($"[SceneManager] Start switching scene to: {newScenePath}");
 			// Starting to switch scene to:
 			
@@ -370,6 +455,8 @@ namespace LongSceneManagerCs
 			{
 				GD.PrintErr($"[SceneManager] Error: Target scene path does not exist: {newScenePath}");
 				// Error: Target scene path does not exist:
+				_isSwitching = false;
+				EmitSignal(SignalName.SceneSwitchFailed, newScenePath);
 				return;
 			}
 			
@@ -377,25 +464,29 @@ namespace LongSceneManagerCs
 			// Send scene switching started signal
 			EmitSignal(SignalName.SceneSwitchStarted, _currentScenePath, newScenePath);
 			
-			// 如果目标场景就是当前场景，则无需切换
-			// If target scene is the current scene, no need to switch
-			if (_currentScenePath == newScenePath)
+			// 如果目标场景就是当前场景且未标记重置，则无需切换
+			// If target scene is the current scene and not marked for reset, no need to switch
+			if (_currentScenePath == newScenePath && !_scenesToReset.ContainsKey(newScenePath))
 			{
 				GD.Print($"[SceneManager] Scene already loaded: {newScenePath}");
 				// Scene already loaded:
+				_isSwitching = false;
 				EmitSignal(SignalName.SceneSwitchCompleted, newScenePath);
 				return;
 			}
 			
-			// 获取加载屏幕实例
-			// Get loading screen instance
-			var loadScreenToUse = GetLoadScreenInstance(loadScreenPath);
-			if (loadScreenPath != "no_transition" && loadScreenToUse == null)
-			{
-				GD.PrintErr("[SceneManager] Error: Unable to get loading screen, switching aborted");
-				// Error: Cannot get loading screen, switching aborted
-				return;
-			}
+		// 获取加载屏幕实例
+		// Get loading screen instance
+		var loadScreenToUse = GetLoadScreenInstance(loadScreenPath);
+		
+		if (loadScreenPath != "no_transition" && loadScreenToUse == null)
+		{
+			GD.PrintErr("[SceneManager] Error: Unable to get loading screen, switching aborted");
+			// Error: Unable to get loading screen, switching aborted
+			_isSwitching = false;
+			EmitSignal(SignalName.SceneSwitchFailed, newScenePath);
+			return;
+		}
 			
 			// 检查预加载资源缓存
 			// Check preload resource cache
@@ -404,16 +495,18 @@ namespace LongSceneManagerCs
 				GD.Print($"[SceneManager] Using preload resource cache: {newScenePath}");
 				// Using preload resource cache:
 				await HandlePreloadedResource(newScenePath, loadScreenToUse, useCache);
+				_isSwitching = false;
 				return;
 			}
 			
 			// 如果场景正在预加载中，则等待预加载完成
 			// If scene is preloading, wait for preload to complete
-			if (_loadingScenePath == newScenePath && _loadingState == LoadState.Loading)
+			if (_preloadStates.ContainsKey(newScenePath) && _preloadStates[newScenePath].State == LoadState.Loading)
 			{
 				GD.Print("[SceneManager] Scene is preloading, waiting for completion...");
 				// Scene is preloading, waiting for completion...
 				await HandlePreloadingScene(newScenePath, loadScreenToUse, useCache);
+				_isSwitching = false;
 				return;
 			}
 			
@@ -424,6 +517,7 @@ namespace LongSceneManagerCs
 				GD.Print($"[SceneManager] Loading scene from instance cache: {newScenePath}");
 				// Loading scene from instance cache:
 				await HandleCachedScene(newScenePath, loadScreenToUse);
+				_isSwitching = false;
 				return;
 			}
 			
@@ -432,26 +526,12 @@ namespace LongSceneManagerCs
 			GD.Print($"[SceneManager] Directly loading scene: {newScenePath}");
 			// Directly loading scene:
 			await HandleDirectLoad(newScenePath, loadScreenToUse, useCache);
+			_isSwitching = false;
 		}
 		
-		/// <summary>
-		/// 专供GDScript调用的场景切换方法（非异步包装）
-		/// 
-		/// Scene switching method specifically for GDScript calls (non-async wrapper)
-		/// </summary>
-		/// <param name="newScenePath">要切换到的新场景路径 // New scene path to switch to</param>
-		/// <param name="useCache">是否使用缓存机制，默认为true // Whether to use caching mechanism, default is true</param>
-		/// <param name="loadScreenPath">自定义加载屏幕路径，为空则使用默认加载屏幕 // Custom loading screen path, empty to use default loading screen</param>
-		public void SwitchSceneGD(string newScenePath, bool useCache = true, string loadScreenPath = "")
-		{
-			// 调用异步方法，但不等待其结果
-			// Call async method but don't wait for its result
-			_ = SwitchScene(newScenePath, useCache, loadScreenPath);
-		}
+	#endregion
 		
-		#endregion
-		
-		#region Public API - Preloading
+	#region Public API - Preloading
 		// 公开API - 预加载
 		
 		/// <summary>
@@ -461,51 +541,83 @@ namespace LongSceneManagerCs
 		/// </summary>
 		/// <param name="scenePath">要预加载的场景路径 // Scene path to preload</param>
 		/// <returns>异步任务 // Async task</returns>
-		public async Task PreloadScene(string scenePath)
+	public async Task PreloadScene(string scenePath)
+	{
+		GD.Print($"[SceneManager] PreloadScene called for: {scenePath}");
+		GD.Print($"[SceneManager]   _preloadResourceCache contains: {_preloadResourceCache.ContainsKey(scenePath)}");
+		GD.Print($"[SceneManager]   _sceneCache contains: {_sceneCache.ContainsKey(scenePath)}");
+		GD.Print($"[SceneManager]   _preloadStates contains: {_preloadStates.ContainsKey(scenePath)}");
+		
+		// 检查场景路径是否存在
+		// Check if scene path exists
+		if (!ResourceLoader.Exists(scenePath))
 		{
-			// 检查场景路径是否存在
-			// Check if scene path exists
-			if (!ResourceLoader.Exists(scenePath))
-			{
-				GD.PrintErr($"[SceneManager] Error: Preload scene path does not exist: {scenePath}");
-				// Error: Preload scene path does not exist:
-				return;
-			}
-			
-			// 检查是否已预加载或已缓存，避免重复加载
-			// Check if already preloaded or cached to avoid duplicate loading
-			if (_preloadResourceCache.ContainsKey(scenePath))
-			{
-				GD.Print($"[SceneManager] Scene already preloaded: {scenePath}");
-				// Scene already preloaded:
-				// 更新LRU访问顺序
-				// Update LRU access order
-				UpdatePreloadResourceCacheAccess(scenePath);
-				return;
-			}
-			
-			// 检查场景是否正在加载或已经加载到实例缓存中
-			// Check if scene is loading or already loaded into instance cache
-			if ((_loadingScenePath == scenePath && _loadingState == LoadState.Loading) ||
-				(_loadingScenePath == scenePath && _loadingState == LoadState.Loaded) ||
-				_sceneCache.ContainsKey(scenePath))
+			GD.PrintErr($"[SceneManager] Error: Preload scene path does not exist: {scenePath}");
+			// Error: Preload scene path does not exist:
+			return;
+		}
+		
+		// 检查是否已在预加载资源缓存中
+		// Check if already in preload resource cache
+		if (_preloadResourceCache.ContainsKey(scenePath))
+		{
+			GD.Print($"[SceneManager] Scene already preloaded: {scenePath}");
+			// Scene already preloaded:
+			return;
+		}
+		
+		// 检查是否已在实例缓存中
+		// Check if already in instance cache
+		if (_sceneCache.ContainsKey(scenePath))
+		{
+			GD.Print($"[SceneManager] Scene already loaded or loading: {scenePath}");
+			// Scene already loaded or loading:
+			return;
+		}
+		
+	// 获取预加载状态（不创建新状态）
+		// Get preload state (without creating new state)
+		if (_preloadStates.ContainsKey(scenePath))
+		{
+			var currentState = _preloadStates[scenePath];
+			GD.Print($"[SceneManager]   preloadState.State: {currentState.State}");
+			if (currentState.State == LoadState.Loading || currentState.State == LoadState.Loaded)
 			{
 				GD.Print($"[SceneManager] Scene already loaded or loading: {scenePath}");
 				// Scene already loaded or loading:
 				return;
 			}
+		}
+		else
+		{
+			GD.Print($"[SceneManager]   No preload state found (clean state)");
+		}
+		
+		GD.Print($"[SceneManager] Start preloading scene: {scenePath}");
+		// Starting to preload scene:
+		// 发送预加载开始信号
+		// Send preloading started signal
+		EmitSignal(SignalName.ScenePreloadStarted, scenePath);
+		
+		// 设置预加载状态为加载中（此时需要获取或创建状态）
+		// Set preload state to loading (need to get or create state at this point)
+		var preloadState = GetPreloadState(scenePath);
+		preloadState.State = LoadState.Loading;
 			
-			GD.Print($"[SceneManager] Start preloading scene: {scenePath}");
-			// Starting to preload scene:
-			// 发送预加载开始信号
-			// Send preloading started signal
-			EmitSignal(SignalName.ScenePreloadStarted, scenePath);
-			
-			// 设置当前正在加载的场景信息
-			// Set current scene loading information
-			_loadingScenePath = scenePath;
-			_loadingState = LoadState.Loading;
-			
+			// 后台预加载处理
+			// Background preload handling
+			await PreloadBackground(scenePath);
+		}
+		
+		/// <summary>
+		/// 处理后台预加载完成并缓存
+		/// 
+		/// Handle background preload completion and cache
+		/// </summary>
+		/// <param name="scenePath">场景路径 // Scene path</param>
+		/// <returns>异步任务 // Async task</returns>
+		private async Task PreloadBackground(string scenePath)
+		{
 			// 根据设置决定使用异步还是同步方式进行预加载
 			// Decide whether to use async or sync method for preloading based on settings
 			if (_useAsyncLoading)
@@ -517,15 +629,30 @@ namespace LongSceneManagerCs
 				SyncPreloadScene(scenePath);
 			}
 			
+			// 检查预加载状态是否还存在（可能已被取消）
+			// Check if preload state still exists (might have been cancelled)
+			if (!_preloadStates.ContainsKey(scenePath))
+			{
+				GD.Print($"[SceneManager] Preload was cancelled: {scenePath}");
+				// Preload was cancelled:
+				return;
+			}
+			
+			var preloadState = _preloadStates[scenePath];
+			if (preloadState.State != LoadState.Loading)
+			{
+				GD.Print($"[SceneManager] Preload was cancelled: {scenePath}");
+				// Preload was cancelled:
+				return;
+			}
+			
 			// 如果预加载成功，则将资源放入预加载资源缓存中
 			// If preload succeeds, put resource into preload resource cache
-			if (_loadingResource != null)
+			if (preloadState.Resource != null)
 			{
-				// 预加载完成后，将资源存入预加载资源缓存
-				// After preloading completes, store resource in preload resource cache
-				_preloadResourceCache[scenePath] = _loadingResource;
+				_preloadResourceCache[scenePath] = preloadState.Resource;
 				_preloadResourceCacheAccessOrder.Add(scenePath);
-				_loadingState = LoadState.Loaded;
+				preloadState.State = LoadState.Loaded;
 				// 发送预加载完成信号
 				// Send preloading completed signal
 				EmitSignal(SignalName.ScenePreloadCompleted, scenePath);
@@ -543,8 +670,10 @@ namespace LongSceneManagerCs
 			{
 				// 预加载失败，重置加载状态
 				// Preloading failed, reset loading state
-				_loadingState = LoadState.NotLoaded;
-				_loadingScenePath = "";
+				preloadState.State = LoadState.NotLoaded;
+				preloadState.Resource = null;
+				ClearPreloadState(scenePath);
+				EmitSignal(SignalName.ScenePreloadFailed, scenePath);
 				GD.Print($"[SceneManager] Preloading failed: {scenePath}");
 				// Preloading failed:
 			}
@@ -563,9 +692,55 @@ namespace LongSceneManagerCs
 			_ = PreloadScene(scenePath);
 		}
 		
-		#endregion
+		/// <summary>
+		/// 取消正在进行的场景预加载
+		/// 
+		/// Cancel scene preloading if in progress
+		/// </summary>
+		/// <param name="scenePath">场景路径 // Scene path</param>
+		public void CancelPreloadScene(string scenePath)
+		{
+			// 检查场景是否正在预加载
+			// Check if scene is currently preloading
+			if (_preloadStates.ContainsKey(scenePath) && _preloadStates[scenePath].State == LoadState.Loading)
+			{
+				// 清除预加载状态
+				// Clear preload state
+				_preloadStates.Remove(scenePath);
+				GD.Print($"[SceneManager] Cancelled preload: {scenePath}");
+				// Cancelled preload:
+			}
+		}
 		
-		#region Public API - Cache Management
+		/// <summary>
+		/// 取消所有正在预加载的场景
+		/// 
+		/// Cancel all scenes that are currently preloading
+		/// </summary>
+		public void CancelAllPreloads()
+		{
+			// 收集需要取消的场景路径
+			// Collect scene paths that need to be cancelled
+			var toCancel = new List<string>();
+			foreach (var kvp in _preloadStates)
+			{
+				if (kvp.Value.State == LoadState.Loading)
+				{
+					toCancel.Add(kvp.Key);
+				}
+			}
+			
+			// 取消每个预加载
+			// Cancel each preload
+			foreach (var path in toCancel)
+			{
+				CancelPreloadScene(path);
+			}
+		}
+		
+	#endregion
+		
+	#region Public API - Cache Management
 		// 公开API - 缓存管理
 		
 		/// <summary>
@@ -584,6 +759,7 @@ namespace LongSceneManagerCs
 			// Clean up preload resource cache (stores PackedScene resources)
 			_preloadResourceCache.Clear();
 			_preloadResourceCacheAccessOrder.Clear();
+			_preloadStates.Clear();
 			GD.Print("[SceneManager] Preload resource cache cleared");
 			// Preload resource cache cleared
 			
@@ -619,36 +795,119 @@ namespace LongSceneManagerCs
 				}
 			}
 			
-			// 重置加载状态，确保可以重新预加载场景
-			// Reset loading state to ensure scenes can be preloaded again
-			_loadingScenePath = "";
-			_loadingState = LoadState.NotLoaded;
-			_loadingResource = null;
+		GD.Print("[SceneManager] Cache cleared");
+		// Cache cleared
+	}
+	
+	/// <summary>
+	/// 移除预加载资源缓存
+	/// 只清理预加载资源缓存及相关状态
+	/// 
+	/// Remove preloaded resource from cache
+	/// Only cleanup preload resource cache and related states
+	/// </summary>
+	/// <param name="scenePath">场景路径 // Scene path</param>
+	public void RemovePreloadedResource(string scenePath)
+	{
+		// 检查预加载资源缓存或预加载状态中是否存在
+		// Check if in preload resource cache or preload states
+		if (_preloadResourceCache.ContainsKey(scenePath) || _preloadStates.ContainsKey(scenePath))
+		{
+			_preloadResourceCache.Remove(scenePath);
 			
-			GD.Print("[SceneManager] Cache cleared");
-			// Cache cleared
+			var index = _preloadResourceCacheAccessOrder.IndexOf(scenePath);
+			if (index != -1)
+			{
+				_preloadResourceCacheAccessOrder.RemoveAt(index);
+			}
+			
+			// 清除预加载状态，防止状态残留导致无法重新预加载
+			// Clear preload state to prevent residue from blocking re-preload
+			ClearPreloadState(scenePath);
+			
+			GD.Print($"[SceneManager] Removed preloaded resource: {scenePath}");
+			// Removed preloaded resource:
+			EmitSignal(SignalName.SceneRemovedFromCache, scenePath);
 		}
-		
-		/// <summary>
-		/// 获取缓存信息
+		else
+		{
+			GD.Print($"[SceneManager] Warning: Preloaded resource not found in cache: {scenePath}");
+			// Preloaded resource not found in cache:
+			if (_sceneCache.ContainsKey(scenePath))
+			{
+				GD.Print("[SceneManager] Hint: Scene is in instance cache. Use 'RemoveCachedScene()' to remove instance cache.");
+			}
+		}
+	}
+	
+	/// <summary>
+	/// 移除缓存的场景实例
+	/// 只清理实例化场景缓存及相关状态
+	/// 
+	/// Remove cached scene instance from cache
+	/// Only cleanup instantiated scene cache and related states
+	/// </summary>
+	/// <param name="scenePath">场景路径 // Scene path</param>
+	public void RemoveCachedScene(string scenePath)
+	{
+		// 检查实例缓存中是否存在
+		// Check if in instance cache
+		if (_sceneCache.TryGetValue(scenePath, out var cached))
+		{
+			// 检查缓存的场景实例是否仍然有效
+			// Check if cached scene instance is still valid
+			if (IsInstanceValid(cached.SceneInstance))
+			{
+				CleanupOrphanedNodes(cached.SceneInstance);
+				cached.SceneInstance.QueueFree();
+			}
+			
+			_sceneCache.Remove(scenePath);
+			
+			var index = _cacheAccessOrder.IndexOf(scenePath);
+			if (index != -1)
+			{
+				_cacheAccessOrder.RemoveAt(index);
+			}
+			
+			// 清除可能残留的预加载状态
+			// Clear any residual preload state
+			ClearPreloadState(scenePath);
+			
+			GD.Print($"[SceneManager] Removed cached scene: {scenePath}");
+			// Removed cached scene:
+			EmitSignal(SignalName.SceneRemovedFromCache, scenePath);
+		}
+		else
+		{
+			GD.Print($"[SceneManager] Warning: Cached scene not found in cache: {scenePath}");
+			// Cached scene not found in cache:
+			if (_preloadResourceCache.ContainsKey(scenePath))
+			{
+				GD.Print("[SceneManager] Hint: Scene is in preload resource cache. Use 'RemovePreloadedResource()' to remove preload cache.");
+			}
+		}
+	}
+	
+	/// <summary>
+	/// 获取缓存信息
 		/// 返回关于当前缓存状态的详细信息
 		/// 
 		/// Get cache information
 		/// Return detailed information about current cache state
 		/// </summary>
 		/// <returns>包含缓存信息的字典 // Dictionary containing cache information</returns>
-		public Godot.Collections.Dictionary<string, Variant> GetCacheInfo()
+		public Godot.Collections.Dictionary GetCacheInfo()
 		{
 			// 构建实例缓存信息列表
 			// Build instance cache information list
-			var cachedScenes = new Array<Godot.Collections.Dictionary<string, Variant>>();
+			var cachedScenes = new Godot.Collections.Array();
 			foreach (var kvp in _sceneCache)
 			{
 				var path = kvp.Key;
 				var cached = kvp.Value;
-				var dict = new Godot.Collections.Dictionary<string, Variant>();
+				var dict = new Godot.Collections.Dictionary();
 				dict.Add("path", path);                    // 场景路径 // Scene path
-				dict.Add("access_count", cached.AccessCount);  // 访问次数 // Access count
 				dict.Add("cached_time", cached.CachedTime);    // 缓存时间 // Cache time
 				dict.Add("instance_valid", IsInstanceValid(cached.SceneInstance)); // 实例是否有效 // Instance validity
 				cachedScenes.Add(dict);
@@ -656,28 +915,53 @@ namespace LongSceneManagerCs
 			
 			// 构建预加载资源缓存路径列表
 			// Build preload resource cache path list
-			var preloadedScenes = new Array<string>();
+			var preloadedScenes = new Godot.Collections.Array();
 			foreach (var path in _preloadResourceCache.Keys)
 			{
 				preloadedScenes.Add(path);
 			}
 			
+			// 构建正在预加载的场景列表
+			// Build scenes currently preloading list
+			var preloadingScenes = new Godot.Collections.Array();
+			foreach (var kvp in _preloadStates)
+			{
+				if (kvp.Value.State == LoadState.Loading)
+				{
+					preloadingScenes.Add(kvp.Key);
+				}
+			}
+			
 			// 构建结果字典
 			// Build result dictionary
-			var result = new Godot.Collections.Dictionary<string, Variant>();
-			result.Add("instance_cache_size", _sceneCache.Count);       // 实例缓存大小 // Instance cache size
-			result.Add("max_size", _maxCacheSize);                      // 最大缓存大小 // Maximum cache size
-			result.Add("access_order", _cacheAccessOrder.ToArray());    // 访问顺序 // Access order
-			result.Add("cached_scenes", cachedScenes);                  // 缓存的场景详情 // Cached scene details
-			result.Add("preload_resource_cache", preloadedScenes);      // 预加载资源缓存 // Preload resource cache
-			result.Add("preload_cache_size", _preloadResourceCache.Count); // 预加载缓存大小 // Preload cache size
-			result.Add("max_preload_resource_cache_size", _maxPreloadResourceCacheSize); // 预加载缓存最大大小 // Preload cache maximum size
-			result.Add("preload_resource_access_order", _preloadResourceCacheAccessOrder.ToArray()); // 预加载资源访问顺序 // Preload resource access order
+			var result = new Godot.Collections.Dictionary();
+			result.Add("current_scene", _currentScenePath);           // 当前场景 // Current scene
+			result.Add("previous_scene", _previousScenePath);       // 上一个场景 // Previous scene
+			
+			// 实例缓存部分
+			// Instance cache section
+			var instanceCache = new Godot.Collections.Dictionary();
+			instanceCache.Add("size", _sceneCache.Count);
+			instanceCache.Add("max_size", _maxCacheSize);
+			instanceCache.Add("access_order", _cacheAccessOrder.ToArray());
+			instanceCache.Add("scenes", cachedScenes);
+			result.Add("instance_cache", instanceCache);
+			
+			// 预加载资源缓存部分
+			// Preload resource cache section
+			var preloadCache = new Godot.Collections.Dictionary();
+			preloadCache.Add("size", _preloadResourceCache.Count);
+			preloadCache.Add("max_size", _maxPreloadResourceCacheSize);
+			preloadCache.Add("access_order", _preloadResourceCacheAccessOrder.ToArray());
+			preloadCache.Add("scenes", preloadedScenes);
+			result.Add("preload_cache", preloadCache);
+			
+			result.Add("preloading_scenes", preloadingScenes);
 			
 			return result;
-		}
+ 		}
 		
-		/// <summary>
+	/// <summary>
 		/// 检查指定场景是否在缓存中
 		/// 
 		/// Check if specified scene is in cache
@@ -721,27 +1005,36 @@ namespace LongSceneManagerCs
 		/// <returns>加载进度(0.0-1.0)，如果场景已加载完成则返回1.0 // Loading progress (0.0-1.0), returns 1.0 if scene loading is complete</returns>
 		public float GetLoadingProgress(string scenePath)
 		{
-			// 如果不是正在加载该场景，则检查是否已缓存
-			// If not loading this scene, check if it's cached
-			if (_loadingScenePath != scenePath || _loadingState != LoadState.Loading)
+			// 检查预加载状态
+			// Check preload state
+			if (_preloadStates.ContainsKey(scenePath))
 			{
-				return (_sceneCache.ContainsKey(scenePath) || _preloadResourceCache.ContainsKey(scenePath)) ? 1.0f : 0.0f;
+				var preloadState = _preloadStates[scenePath];
+				if (preloadState.State == LoadState.Loading)
+				{
+					// 创建用于接收进度信息的数组
+					// Create array to receive progress information
+					Godot.Collections.Array progressArray = new();
+					// 获取加载状态和进度
+					// Get loading status and progress
+					var status = ResourceLoader.LoadThreadedGetStatus(scenePath, progressArray);
+					// 如果正在加载中且有进度信息，则返回进度值
+					// If loading in progress and has progress info, return progress value
+					if (status == ResourceLoader.ThreadLoadStatus.InProgress && progressArray.Count > 0)
+					{
+						return (float)progressArray[0];
+					}
+					return 0.0f;
+				}
+				else if (preloadState.State == LoadState.Loaded)
+				{
+					return 1.0f;
+				}
 			}
 			
-			// 创建用于接收进度信息的数组
-			// Create array to receive progress information
-			Godot.Collections.Array progressArray = new();
-			// 获取加载状态和进度
-			// Get loading status and progress
-			var status = ResourceLoader.LoadThreadedGetStatus(scenePath, progressArray);
-			// 如果正在加载中且有进度信息，则返回进度值
-			// If loading in progress and has progress info, return progress value
-			if (status == ResourceLoader.ThreadLoadStatus.InProgress && progressArray.Count > 0)
-			{
-				return (float)progressArray[0];
-			}
-			
-			return 0.0f;
+			// 如果不在预加载中，检查是否已缓存
+			// If not preloading, check if cached
+			return (_sceneCache.ContainsKey(scenePath) || _preloadResourceCache.ContainsKey(scenePath)) ? 1.0f : 0.0f;
 		}
 		
 		/// <summary>
@@ -1158,32 +1451,58 @@ namespace LongSceneManagerCs
 		/// <returns>异步任务 // Async task</returns>
 		private async Task HandlePreloadingScene(string scenePath, Node loadScreenInstance, bool useCache)
 		{
-			// 显示加载屏幕
-			// Show loading screen
 			await ShowLoadScreen(loadScreenInstance);
-			// 等待预加载完成
-			// Wait for preload to complete
-			await WaitForPreload(scenePath);
-			
-			// 预加载完成后，将资源存入预加载资源缓存
-			// After preloading completes, store the resource in the preload resource cache
-			if (_loadingResource != null)
+
+			var waitStartTime = Time.GetTicksMsec();
+			// 循环等待直到预加载完成
+			// Loop waiting until preload completes
+			while (_preloadStates.ContainsKey(scenePath) && _preloadStates[scenePath].State == LoadState.Loading)
 			{
-				_preloadResourceCache[scenePath] = _loadingResource;
+				var progress = GetLoadingProgress(scenePath);
+				
+				// 更新加载屏幕进度（如果支持）
+				// Update loading screen progress (if supported)
+				if (loadScreenInstance != null && loadScreenInstance.HasMethod("set_progress"))
+				{
+					loadScreenInstance.Call("set_progress", progress);
+				}
+				else if (loadScreenInstance != null && loadScreenInstance.HasMethod("update_progress"))
+				{
+					loadScreenInstance.Call("update_progress", progress);
+				}
+				
+				// 每500毫秒输出一次进度
+				// Output progress every 500 milliseconds
+				if (Time.GetTicksMsec() - waitStartTime > 500)
+				{
+					GD.Print($"[SceneManager] Preload progress: {progress * 100}%");
+					waitStartTime = Time.GetTicksMsec();
+				}
+				
+				await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+			}
+			
+			GD.Print("[SceneManager] Preload waiting completed");
+			
+			// 获取预加载状态
+			// Get preload state
+			var preloadState = GetPreloadState(scenePath);
+			if (preloadState.Resource != null)
+			{
+				_preloadResourceCache[scenePath] = preloadState.Resource;
 				_preloadResourceCacheAccessOrder.Add(scenePath);
 				GD.Print($"[SceneManager] Preload resource cached: {scenePath}");
-				// Preload resource cached:
 				
-				// 如果预加载资源缓存数量超过最大限制，则移除最旧的缓存项
-				// If preload resource cache count exceeds maximum limit, remove oldest cache item
 				if (_preloadResourceCacheAccessOrder.Count > _maxPreloadResourceCacheSize)
 				{
 					RemoveOldestPreloadResource();
 				}
 			}
 			
-			// 实例化并切换场景
-			// Instantiate and switch scene
+			// 清除预加载状态
+			// Clear preload state
+			ClearPreloadState(scenePath);
+			
 			await InstantiateAndSwitch(scenePath, loadScreenInstance, useCache);
 		}
 		
@@ -1218,14 +1537,42 @@ namespace LongSceneManagerCs
 		/// <param name="loadScreenInstance">加载屏幕实例 // Loading screen instance</param>
 		/// <param name="useCache">是否使用缓存 // Whether to use cache</param>
 		/// <returns>异步任务 // Async task</returns>
-		private async Task HandleDirectLoad(string scenePath, Node loadScreenInstance, bool useCache)
-		{
-			// 显示加载屏幕
-			// Show loading screen
-			await ShowLoadScreen(loadScreenInstance);
-			// 加载并切换场景
-			// Load and switch scene
-			await LoadAndSwitch(scenePath, loadScreenInstance, useCache);
+	private async Task HandleDirectLoad(string scenePath, Node loadScreenInstance, bool useCache)
+	{
+		GD.Print($"[SceneManager] Loading scene: {scenePath}");
+		// Loading scene:
+		
+		// 显示加载屏幕（淡入效果）
+		// Show loading screen (fade-in effect)
+		await ShowLoadScreen(loadScreenInstance);
+		
+		// 加载场景资源
+		// Load scene resource
+		var newSceneResource = ResourceLoader.Load<PackedScene>(scenePath);
+			if (newSceneResource == null)
+			{
+				GD.PrintErr($"[SceneManager] Scene loading failed: {scenePath}");
+				// Scene loading failed:
+				await HideLoadScreen(loadScreenInstance);
+				EmitSignal(SignalName.SceneSwitchFailed, scenePath);
+				return;
+			}
+			
+			// 跨多帧实例化场景
+			// Instantiate scene across multiple frames
+			var newScene = await InstantiateSceneDeferred(newSceneResource, loadScreenInstance);
+			if (newScene == null)
+			{
+				GD.PrintErr($"[SceneManager] Scene instantiation failed: {scenePath}");
+				// Scene instantiation failed:
+				await HideLoadScreen(loadScreenInstance);
+				EmitSignal(SignalName.SceneSwitchFailed, scenePath);
+				return;
+			}
+			
+			// 执行场景切换
+			// Perform scene switch
+			await PerformSceneSwitch(newScene, scenePath, loadScreenInstance, useCache);
 		}
 		
 		#endregion
@@ -1234,45 +1581,114 @@ namespace LongSceneManagerCs
 		// 加载和切换核心函数
 		
 		/// <summary>
-		/// 等待预加载完成
-		/// 定期检查加载进度并在控制台输出进度信息
+		/// 跨多帧实例化场景以避免卡顿
 		/// 
-		/// Wait for preload to complete
-		/// Periodically check loading progress and output progress information to console
+		/// Instantiate scene across multiple frames to avoid stalls
 		/// </summary>
-		/// <param name="scenePath">正在预加载的场景路径 // Scene path being preloaded</param>
-		/// <returns>异步任务 // Async task</returns>
-		private async Task WaitForPreload(string scenePath)
+		/// <param name="packedScene">要实例化的PackedScene // PackedScene to instantiate</param>
+		/// <param name="loadScreenInstance">加载屏幕实例（可选） // Loading screen instance (optional)</param>
+		/// <returns>实例化的场景节点 // Instantiated scene node</returns>
+		private async Task<Node> InstantiateSceneDeferred(PackedScene packedScene, Node loadScreenInstance = null)
 		{
-			GD.Print($"[SceneManager] Waiting for preload to complete: {scenePath}");
-			// Waiting for preload to complete:
-			
-			var waitStartTime = Time.GetTicksMsec();
-			// 循环等待直到预加载完成
-			// Loop waiting until preload completes
-			while (_loadingScenePath == scenePath && _loadingState == LoadState.Loading)
+			if (_instantiateFrames <= 1)
 			{
-				// 每500毫秒输出一次进度信息
-				// Output progress information every 500 milliseconds
-				if (Time.GetTicksMsec() - waitStartTime > 500)
+				return packedScene.Instantiate();
+			}
+			
+			var instance = packedScene.Instantiate();
+			if (instance == null)
+			{
+				return null;
+			}
+			
+			var children = CollectChildrenRecursive(instance);
+			var total = children.Count;
+			
+			if (total == 0)
+			{
+				return instance;
+			}
+			
+			var frameSize = Math.Max(1, (int)Math.Ceiling((float)total / _instantiateFrames));
+			
+			for (int i = 0; i < total; i += frameSize)
+			{
+				for (int j = 0; j < frameSize; j++)
 				{
-					var progress = GetLoadingProgress(scenePath);
-					GD.Print($"[SceneManager] Preload progress: {progress * 100}%");
-					// Preload progress:
-					waitStartTime = Time.GetTicksMsec();
+					var idx = i + j;
+					if (idx >= total)
+					{
+						break;
+					}
+					
+					var child = children[idx];
+					if (IsInstanceValid(child))
+					{
+						child.SetProcess(false);
+						child.SetPhysicsProcess(false);
+						child.SetProcessInput(false);
+						child.SetProcessUnhandledInput(false);
+						child.SetProcessUnhandledKeyInput(false);
+					}
 				}
 				
-				// 等待下一帧
-				// Wait for next frame
+				var processed = Math.Min(i + frameSize, total);
+				
+				if (loadScreenInstance != null && loadScreenInstance.HasMethod("set_progress"))
+				{
+					loadScreenInstance.Call("set_progress", (float)processed / total);
+				}
+				else if (loadScreenInstance != null && loadScreenInstance.HasMethod("update_progress"))
+				{
+					loadScreenInstance.Call("update_progress", (float)processed / total);
+				}
+				
 				await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
 			}
 			
-			GD.Print("[SceneManager] Preload waiting completed");
-			// Preload waiting completed
+			foreach (var child in children)
+			{
+				if (IsInstanceValid(child))
+				{
+					child.SetProcess(true);
+					child.SetPhysicsProcess(true);
+					child.SetProcessInput(true);
+					child.SetProcessUnhandledInput(true);
+					child.SetProcessUnhandledKeyInput(true);
+				}
+			}
+			
+			return instance;
 		}
 		
 		/// <summary>
-		/// 实例化预加载的场景并执行切换
+		/// 递归收集所有子节点
+		/// 
+		/// Collect all children nodes recursively
+		/// </summary>
+		/// <param name="root">根节点 // Root node</param>
+		/// <returns>包含所有子节点的列表 // List containing all child nodes</returns>
+		private List<Node> CollectChildrenRecursive(Node root)
+		{
+			var result = new List<Node> { root };
+			var queue = new Queue<Node>();
+			queue.Enqueue(root);
+			
+			while (queue.Count > 0)
+			{
+				var node = queue.Dequeue();
+				foreach (var child in node.GetChildren())
+				{
+					result.Add(child);
+					queue.Enqueue(child);
+				}
+			}
+			
+			return result;
+		}
+		
+		/// <summary>
+		/// 实例化预加载场景并执行切换
 		/// 
 		/// Instantiate preloaded scene and perform switch
 		/// </summary>
@@ -1282,46 +1698,128 @@ namespace LongSceneManagerCs
 		/// <returns>异步任务 // Async task</returns>
 		private async Task InstantiateAndSwitch(string scenePath, Node loadScreenInstance, bool useCache)
 		{
-			// 检查预加载资源是否有效
-			// Check if preload resource is valid
-			if (_loadingResource == null || _loadingScenePath != scenePath)
+			if (!_preloadResourceCache.ContainsKey(scenePath))
 			{
-				GD.PrintErr("[SceneManager] Preloaded resource does not exist or path mismatch");
-				// Preloaded resource does not exist or path mismatch
+				GD.PrintErr($"[SceneManager] Preloaded resource does not exist: {scenePath}");
 				await HideLoadScreen(loadScreenInstance);
+				EmitSignal(SignalName.SceneSwitchFailed, scenePath);
 				return;
 			}
 			
 			GD.Print($"[SceneManager] Instantiating preloaded scene: {scenePath}");
-			// Instantiating preloaded scene:
 			
-			// 实例化场景
-			// Instantiate scene
-			var newScene = _loadingResource.Instantiate();
+			var packedScene = _preloadResourceCache[scenePath];
+			// 从预加载缓存移除（参考HandlePreloadedResource的正确做法）
+			// Remove from preload cache (reference correct approach from HandlePreloadedResource)
+			_preloadResourceCache.Remove(scenePath);
+			var index = _preloadResourceCacheAccessOrder.IndexOf(scenePath);
+			if (index != -1)
+			{
+				_preloadResourceCacheAccessOrder.RemoveAt(index);
+			}
+			
+			var newScene = await InstantiateSceneDeferred(packedScene, loadScreenInstance);
 			if (newScene == null)
 			{
 				GD.PrintErr("[SceneManager] Scene instantiation failed");
-				// Scene instantiation failed
 				await HideLoadScreen(loadScreenInstance);
+				EmitSignal(SignalName.SceneSwitchFailed, scenePath);
 				return;
 			}
 			
-			// 执行场景切换
-			// Perform scene switch
-			await PerformSceneSwitch(newScene, scenePath, loadScreenInstance, useCache);
-			
-			// 重置加载状态
-			// Reset loading state
-			_loadingScenePath = "";
-			_loadingState = LoadState.NotLoaded;
-			_loadingResource = null;
+		await PerformSceneSwitch(newScene, scenePath, loadScreenInstance, useCache);
 		}
 		
-		/// <summary>
-		/// 切换到缓存中的场景
-		/// 
-		/// Switch to scene in cache
-		/// </summary>
+	/// <summary>
+	/// 执行场景切换的核心逻辑
+	/// 处理旧场景的移除、缓存、重置等操作
+	/// 以及新场景的添加和树就绪等待
+	/// 
+	/// Core logic for performing scene switch
+	/// Handles old scene removal, caching, reset, etc.
+	/// And new scene addition and tree ready waiting
+	/// </summary>
+	/// <param name="newScene">新场景实例 // New scene instance</param>
+	/// <param name="newScenePath">新场景路径 // New scene path</param>
+	/// <param name="loadScreenInstance">加载屏幕实例 // Loading screen instance</param>
+	/// <param name="useCache">是否使用缓存 // Whether to use cache</param>
+	/// <returns>异步任务 // Async task</returns>
+	private async Task PerformSceneSwitch(Node newScene, string newScenePath, Node loadScreenInstance, bool useCache)
+	{
+		GD.Print($"[SceneManager] Performing scene switch to: {newScenePath}");
+		
+		var oldScene = _currentScene;
+		var oldScenePath = _currentScenePath;
+		
+		_previousScenePath = _currentScenePath;
+		_currentScene = newScene;
+		_currentScenePath = newScenePath;
+		
+		if (oldScene != null && oldScene != newScene)
+		{
+			GD.Print($"[SceneManager] Removing current scene: {oldScene.Name}");
+			
+			if (oldScene.IsInsideTree())
+			{
+				oldScene.GetParent().RemoveChild(oldScene);
+			}
+			
+			if (_scenesToReset.ContainsKey(oldScenePath))
+			{
+				GD.Print($"[SceneManager] Scene marked for reset, reloading as resource: {oldScenePath}");
+				CleanupOrphanedNodes(oldScene);
+				oldScene.QueueFree();
+				ResetSceneAsResource(oldScenePath);
+				_scenesToReset.Remove(oldScenePath);
+			}
+			else if (useCache && oldScenePath != "" && oldScenePath != newScenePath)
+			{
+				AddToCache(oldScenePath, oldScene);
+			}
+			else
+			{
+				CleanupOrphanedNodes(oldScene);
+				oldScene.QueueFree();
+			}
+		}
+		
+		GD.Print($"[SceneManager] Adding new scene: {newScene.Name}");
+		
+		if (newScene.IsInsideTree())
+		{
+			newScene.GetParent().RemoveChild(newScene);
+		}
+		
+		GetTree().Root.AddChild(newScene);
+		GetTree().CurrentScene = newScene;
+		
+		if (!newScene.IsNodeReady())
+		{
+			GD.Print("[SceneManager] Waiting for new scene to be ready...");
+			await ToSignal(newScene, Node.SignalName.Ready);
+		}
+		
+		await HideLoadScreen(loadScreenInstance);
+		
+		EmitSignal(SignalName.SceneSwitchCompleted, newScenePath);
+		GD.Print($"[SceneManager] Scene switching completed: {newScenePath}");
+	}
+	
+	/// <summary>
+	/// 切换到缓存中的场景
+	/// 
+	/// Switch to scene in cache
+	/// </summary>
+		/// <param name="scenePath">场景路径 // Scene path</param>
+		/// <param name="loadScreenInstance">加载屏幕实例 // Loading screen instance</param>
+		/// <param name="useCache">是否使用缓存 // Whether to use cache</param>
+	/// <returns>异步任务 // Async task</returns>
+		
+	/// <summary>
+	/// 切换到缓存中的场景
+	/// 
+	/// Switch to scene in cache
+	/// </summary>
 		/// <param name="scenePath">场景路径 // Scene path</param>
 		/// <param name="loadScreenInstance">加载屏幕实例 // Loading screen instance</param>
 		/// <returns>异步任务 // Async task</returns>
@@ -1369,10 +1867,6 @@ namespace LongSceneManagerCs
 				_cacheAccessOrder.RemoveAt(index2);
 			}
 			
-			// 更新缓存访问统计
-			// Update cache access statistics
-			cached.Access();
-			
 			// 确保缓存节点不在任何父节点下（防止重复父节点）
 			// Ensure cached node is not under any parent node (prevent duplicate parent nodes)
 			if (sceneInstance.IsInsideTree())
@@ -1383,143 +1877,6 @@ namespace LongSceneManagerCs
 			// 执行场景切换
 			// Perform scene switch
 			await PerformSceneSwitch(sceneInstance, scenePath, loadScreenInstance, true);
-		}
-		
-		/// <summary>
-		/// 直接加载并切换场景
-		/// 
-		/// Directly load and switch scene
-		/// </summary>
-		/// <param name="scenePath">场景路径 // Scene path</param>
-		/// <param name="loadScreenInstance">加载屏幕实例 // Loading screen instance</param>
-		/// <param name="useCache">是否使用缓存 // Whether to use cache</param>
-		/// <returns>异步任务 // Async task</returns>
-		private async Task LoadAndSwitch(string scenePath, Node loadScreenInstance, bool useCache)
-		{
-			GD.Print($"[SceneManager] Loading scene: {scenePath}");
-			// Loading scene:
-			
-			// 加载场景资源
-			// Load scene resource
-			var newSceneResource = ResourceLoader.Load<PackedScene>(scenePath);
-			if (newSceneResource == null)
-			{
-				GD.PrintErr($"[SceneManager] Scene loading failed: {scenePath}");
-				// Scene loading failed:
-				await HideLoadScreen(loadScreenInstance);
-				return;
-			}
-			
-			// 实例化场景
-			// Instantiate scene
-			var newScene = newSceneResource.Instantiate();
-			if (newScene == null)
-			{
-				GD.PrintErr($"[SceneManager] Scene instantiation failed: {scenePath}");
-				// Scene instantiation failed:
-				await HideLoadScreen(loadScreenInstance);
-				return;
-			}
-			
-			// 执行场景切换
-			// Perform scene switch
-			await PerformSceneSwitch(newScene, scenePath, loadScreenInstance, useCache);
-		}
-		
-		/// <summary>
-		/// 执行实际的场景切换操作
-		/// 处理旧场景的移除和新场景的添加
-		/// 
-		/// Perform actual scene switching operation
-		/// Handle removal of old scene and addition of new scene
-		/// </summary>
-		/// <param name="newScene">新场景实例 // New scene instance</param>
-		/// <param name="newScenePath">新场景路径 // New scene path</param>
-		/// <param name="loadScreenInstance">加载屏幕实例 // Loading screen instance</param>
-		/// <param name="useCache">是否使用缓存 // Whether to use cache</param>
-		/// <returns>异步任务 // Async task</returns>
-		private async Task PerformSceneSwitch(Node newScene, string newScenePath, Node loadScreenInstance, bool useCache)
-		{
-			GD.Print($"[SceneManager] Performing scene switch to: {newScenePath}");
-			// Performing scene switch to:
-			
-			// 保存当前场景信息
-			// Save current scene information
-			var oldScene = _currentScene;
-			var oldScenePath = _currentScenePath;
-			
-			// 更新场景管理器状态
-			// Update scene manager state
-			_previousScenePath = _currentScenePath;
-			_currentScene = newScene;
-			_currentScenePath = newScenePath;
-			
-			// 处理旧场景
-			// Handle old scene
-			if (oldScene != null && oldScene != newScene)
-			{
-				GD.Print($"[SceneManager] Removing current scene: {oldScene.Name}");
-				// Removing current scene:
-				
-				// 从场景树中移除旧场景
-				// Remove old scene from scene tree
-				if (oldScene.IsInsideTree())
-				{
-					oldScene.GetParent().RemoveChild(oldScene);
-				}
-				
-				// 如果启用缓存且旧场景路径有效，则将旧场景添加到缓存中
-				// If caching is enabled and old scene path is valid, add old scene to cache
-				if (useCache && !string.IsNullOrEmpty(oldScenePath) && oldScenePath != newScenePath)
-				{
-					AddToCache(oldScenePath, oldScene);
-				}
-				else
-				{
-					// 不使用缓存则直接清理旧场景
-					// If not using cache, directly clean up old scene
-					CleanupOrphanedNodes(oldScene);
-					oldScene.QueueFree();
-				}
-			}
-			
-			GD.Print($"[SceneManager] Adding new scene: {newScene.Name}");
-			// Adding new scene:
-			
-			// 确保新场景不在任何父节点下（防止重复父节点）
-			// Ensure new scene is not under any parent node (prevent duplicate parent nodes)
-			if (newScene.IsInsideTree())
-			{
-				newScene.GetParent().RemoveChild(newScene);
-			}
-			
-			// 将新场景添加到场景树
-			// Add new scene to scene tree
-			GetTree().Root.AddChild(newScene);
-			GetTree().CurrentScene = newScene;
-			
-			// 等待场景就绪
-			// Wait for scene to be ready
-			if (!newScene.IsNodeReady())
-			{
-				GD.Print("[SceneManager] Waiting for new scene to be ready...");
-				// Waiting for new scene to be ready...
-				await ToSignal(newScene, Node.SignalName.Ready);
-			}
-			
-			// 隐藏加载屏幕
-			// Hide loading screen
-			await HideLoadScreen(loadScreenInstance);
-			
-			// 验证场景树状态
-			// Validate scene tree state
-			DebugValidateSceneTree();
-			
-			// 发送场景切换完成信号
-			// Send scene switch completed signal
-			EmitSignal(SignalName.SceneSwitchCompleted, newScenePath);
-			GD.Print($"[SceneManager] Scene switching completed: {newScenePath}");
-			// Scene switching completed:
 		}
 		
 		#endregion
@@ -1723,6 +2080,41 @@ namespace LongSceneManagerCs
 		
 		#endregion
 		
+		#region Cache Management Internal Functions
+		// 缓存管理内部函数
+		
+		/// <summary>
+		/// 重新加载场景为资源并缓存
+		/// 
+		/// Reload scene as resource and cache it
+		/// </summary>
+		/// <param name="scenePath">场景路径 // Scene path</param>
+		private void ResetSceneAsResource(string scenePath)
+		{
+			GD.Print($"[SceneManager] Resetting scene as resource: {scenePath}");
+			// Resetting scene as resource:
+			
+			var packedScene = ResourceLoader.Load<PackedScene>(scenePath);
+			if (packedScene == null)
+			{
+				GD.PrintErr($"[SceneManager] Failed to reload scene as resource: {scenePath}");
+				// Failed to reload scene as resource:
+				return;
+			}
+			
+			_preloadResourceCache[scenePath] = packedScene;
+			_preloadResourceCacheAccessOrder.Add(scenePath);
+			GD.Print($"[SceneManager] Scene reloaded and cached as resource: {scenePath}");
+			// Scene reloaded and cached as resource:
+			
+			if (_preloadResourceCacheAccessOrder.Count > _maxPreloadResourceCacheSize)
+			{
+				RemoveOldestPreloadResource();
+			}
+		}
+		
+		#endregion
+		
 		#region Preload Internal Functions
 		// 预加载内部函数
 		
@@ -1735,15 +2127,15 @@ namespace LongSceneManagerCs
 		/// </summary>
 		/// <param name="scenePath">场景路径 // Scene path</param>
 		/// <returns>异步任务 // Async task</returns>
-		private async Task AsyncPreloadScene(string scenePath)
-		{
-			GD.Print($"[SceneManager] Asynchronous preload: {scenePath}");
-			// Asynchronous preload:
-			
-			var loadStartTime = Time.GetTicksMsec();
-			// 请求线程化加载
-			// Request threaded loading
-			ResourceLoader.LoadThreadedRequest(scenePath);
+	private async Task AsyncPreloadScene(string scenePath)
+	{
+		GD.Print($"[SceneManager] Asynchronous preload: {scenePath}");
+		// Asynchronous preload:
+		
+		var loadStartTime = Time.GetTicksMsec();
+		// 请求线程化加载，使用 CacheMode.Ignore 强制重新加载
+		// Request threaded loading, use CacheMode.Ignore to force reload
+		ResourceLoader.LoadThreadedRequest(scenePath, "", false, ResourceLoader.CacheMode.Ignore);
 			
 			// 循环检查加载状态
 			// Loop to check loading status
@@ -1779,33 +2171,30 @@ namespace LongSceneManagerCs
 						break;
 					
 					case ResourceLoader.ThreadLoadStatus.Loaded:
-						// 加载完成，获取加载的资源
-						// Loading complete, get loaded resource
-						var loadedResource = ResourceLoader.LoadThreadedGet(scenePath);
-						// 检查资源类型并赋值给_loadingResource
-						// Check resource type and assign to _loadingResource
-						if (loadedResource is PackedScene packedScene)
-						{
-							_loadingResource = packedScene;
-						}
+						// 加载完成，获取加载的资源并更新预加载状态
+						// Loading complete, get loaded resource and update preload state
+						var preloadState = GetPreloadState(scenePath);
+						preloadState.Resource = ResourceLoader.LoadThreadedGet(scenePath) as PackedScene;
 						GD.Print($"[SceneManager] Asynchronous preload completed: {scenePath}");
 						// Asynchronous preload completed:
 						return;
 					
 					case ResourceLoader.ThreadLoadStatus.Failed:
-						// 加载失败，记录错误并重置_loadingResource
-						// Loading failed, log error and reset _loadingResource
+						// 加载失败，记录错误并重置预加载状态
+						// Loading failed, log error and reset preload state
 						GD.PrintErr($"[SceneManager] Asynchronous loading failed: {scenePath}");
 						// Asynchronous loading failed:
-						_loadingResource = null;
+						var failedState = GetPreloadState(scenePath);
+						failedState.Resource = null;
 						return;
 					
 					default:
-						// 未知状态，记录错误并重置_loadingResource
-						// Unknown state, log error and reset _loadingResource
+						// 未知状态，记录错误并重置预加载状态
+						// Unknown state, log error and reset preload state
 						GD.PrintErr($"[SceneManager] Unknown loading status: {status}");
 						// Unknown loading status:
-						_loadingResource = null;
+						var unknownState = GetPreloadState(scenePath);
+						unknownState.Resource = null;
 						return;
 				}
 			}
@@ -1819,14 +2208,15 @@ namespace LongSceneManagerCs
 		/// Directly load scene resources in main thread, will block game process until loading completes
 		/// </summary>
 		/// <param name="scenePath">场景路径 // Scene path</param>
-		private void SyncPreloadScene(string scenePath)
-		{
-			GD.Print($"[SceneManager] Synchronous preload: {scenePath}");
-			// Synchronous preload:
-			// 直接加载场景资源
-			// Directly load scene resource
-			_loadingResource = ResourceLoader.Load<PackedScene>(scenePath);
-		}
+	private void SyncPreloadScene(string scenePath)
+	{
+		GD.Print($"[SceneManager] Synchronous preload: {scenePath}");
+		// Synchronous preload:
+		// 直接加载场景资源并更新预加载状态，使用 CacheMode.Ignore 强制重新加载
+		// Directly load scene resource and update preload state, use CacheMode.Ignore to force reload
+		var preloadState = GetPreloadState(scenePath);
+		preloadState.Resource = (PackedScene)ResourceLoader.Load(scenePath, "", ResourceLoader.CacheMode.Ignore);
+	}
 		
 		#endregion
 		
@@ -1958,43 +2348,28 @@ namespace LongSceneManagerCs
 		{
 			GD.Print("\n=== SceneManager Debug Info ===");
 			// SceneManager Debug Info
-			// 场景管理器调试信息
+			
 			GD.Print($"Current scene: {(_currentScene != null ? _currentScenePath : "None")}");
-			// Current scene:
-			// 当前场景:
 			GD.Print($"Previous scene: {_previousScenePath}");
-			// Previous scene:
-			// 上一个场景:
 			GD.Print($"Instance cache count: {_sceneCache.Count}/{_maxCacheSize}");
-			// Instance cache count:
-			// 实例缓存数量:
 			GD.Print($"Preload resource cache count: {_preloadResourceCache.Count}/{_maxPreloadResourceCacheSize}");
-			// Preload resource cache count:
-			// 预加载资源缓存数量:
 			GD.Print($"Cache access order: {string.Join(", ", _cacheAccessOrder)}");
-			// Cache access order:
-			// 缓存访问顺序:
 			GD.Print($"Preload resource cache access order: {string.Join(", ", _preloadResourceCacheAccessOrder)}");
-			// Preload resource cache access order:
-			// 预加载资源缓存访问顺序:
-			GD.Print($"Scene currently loading: {(!string.IsNullOrEmpty(_loadingScenePath) ? _loadingScenePath : "None")}");
-			// Scene currently loading:
-			// 正在加载的场景:
-			GD.Print($"Loading state: {_loadingState}");
-			// Loading state:
-			// 加载状态:
+			
+			var loadingScenes = new List<string>();
+			foreach (var kvp in _preloadStates)
+			{
+				if (kvp.Value.State == LoadState.Loading)
+				{
+					loadingScenes.Add(kvp.Key);
+				}
+			}
+			GD.Print($"Scenes currently loading: {(loadingScenes.Count > 0 ? string.Join(", ", loadingScenes) : "None")}");
+			
 			GD.Print($"Default loading screen: {(_defaultLoadScreen != null ? "Loaded" : "Not loaded")}");
-			// Default loading screen: "Loaded" or "Not loaded"
-			// 默认加载屏幕:
 			GD.Print($"Active loading screen: {(_activeLoadScreen != null ? "Yes" : "No")}");
-			// Active loading screen: "Yes" or "No"
-			// 活动加载屏幕:
 			GD.Print($"Using asynchronous loading: {_useAsyncLoading}");
-			// Using asynchronous loading:
-			// 使用异步加载:
 			GD.Print($"Always use default loading screen: {_alwaysUseDefaultLoadScreen}");
-			// Always use default loading screen:
-			// 总是使用默认加载屏幕:
 			GD.Print("===============================\n");
 		}
 		
@@ -2012,18 +2387,30 @@ namespace LongSceneManagerCs
 		{
 			public Node SceneInstance { get; }
 			public double CachedTime { get; set; }
-			public int AccessCount { get; private set; }
 			
 			public CachedScene(Node scene)
 			{
 				SceneInstance = scene;
 				CachedTime = Time.GetUnixTimeFromSystem();
-				AccessCount = 0;
 			}
+		}
+		
+		/// <summary>
+		/// 预加载状态类
+		/// 用于追踪每个场景的预加载状态
+		/// 
+		/// Preload state class
+		/// Used to track each scene's preload state
+		/// </summary>
+		private class PreloadState
+		{
+			public LoadState State { get; set; }
+			public PackedScene Resource { get; set; }
 			
-			public void Access()
+			public PreloadState()
 			{
-				AccessCount++;
+				State = LoadState.NotLoaded;
+				Resource = null;
 			}
 		}
 		

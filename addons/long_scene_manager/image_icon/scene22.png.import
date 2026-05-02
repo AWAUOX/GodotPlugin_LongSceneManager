@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ckx7e0lbaoksf"
-path="res://.godot/imported/main_scene.png-9e2d3d2ce3b08bd185c7d8d11cc87b73.ctex"
+uid="uid://bhx7s2ieuetyx"
+path="res://.godot/imported/scene22.png-75e303354d72fa9b02a55e6518e66ee7.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://addons/long_scene_manager/image_icon/main_scene.png"
-dest_files=["res://.godot/imported/main_scene.png-9e2d3d2ce3b08bd185c7d8d11cc87b73.ctex"]
+source_file="res://addons/long_scene_manager/image_icon/scene22.png"
+dest_files=["res://.godot/imported/scene22.png-75e303354d72fa9b02a55e6518e66ee7.ctex"]
 
 [params]
 

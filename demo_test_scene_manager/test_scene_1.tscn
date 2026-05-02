@@ -43,17 +43,17 @@ alignment = 1
 [node name="Button_Main" type="Button" parent="MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer" unique_id=460235415]
 custom_minimum_size = Vector2(200, 60)
 layout_mode = 2
-text = "Button_Main"
+text = "MainUI"
 
 [node name="Button_Scene2" type="Button" parent="MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer" unique_id=412894538]
 custom_minimum_size = Vector2(200, 60)
 layout_mode = 2
-text = "Button_Scene2"
+text = "Scene2"
 
 [node name="Button_Back" type="Button" parent="MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer" unique_id=985275373]
 custom_minimum_size = Vector2(200, 60)
 layout_mode = 2
-text = "Button_Back"
+text = "Back"
 
 [node name="Label_Info" type="Label" parent="MarginContainer/VBoxContainer/HBoxContainer" unique_id=102247814]
 custom_minimum_size = Vector2(200, 200)

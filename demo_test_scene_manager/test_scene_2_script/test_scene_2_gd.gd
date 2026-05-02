@@ -8,8 +8,9 @@ const TEST_SCENE_4_PATH = "res://demo_test_scene_manager/test_scene_4.tscn"
 const TEST_SCENE_5_PATH = "res://demo_test_scene_manager/test_scene_5.tscn"
 
 # 按钮声明（含新增的scene4/scene5切换按钮）
-@onready var button_main: Button = $VBoxContainer/HBoxContainer/VBoxContainer/Button_Main
-@onready var button_scene1: Button = $VBoxContainer/HBoxContainer/VBoxContainer/Button_Scene1
+@onready var button_main: Button = $VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer/Button_Main
+@onready var button_scene1: Button = $VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer/Button_Scene1
+
 
 @onready var button_preload_scene_3: Button = $VBoxContainer/HBoxContainer/VBoxContainer/scene3/Button_PreloadScene3
 @onready var button_switch_scene_3_with_preload: Button = $VBoxContainer/HBoxContainer/VBoxContainer/scene3/Button_SwitchScene3WithPreload
@@ -20,6 +21,13 @@ const TEST_SCENE_5_PATH = "res://demo_test_scene_manager/test_scene_5.tscn"
 @onready var button_preload_scene_5: Button = $VBoxContainer/HBoxContainer/VBoxContainer/Scene5/Button_PreloadScene5
 @onready var button_switch_scene_5_with_preload: Button = $VBoxContainer/HBoxContainer/VBoxContainer/Scene5/Button_SwitchScene5WithPreload
 @onready var button_switch_scene_5_direct: Button = $VBoxContainer/HBoxContainer/VBoxContainer/Scene5/Button_SwitchScene5Direct
+
+@onready var button_remove_preload_scene_3: Button = $VBoxContainer/HBoxContainer/VBoxContainer/Scene3RemoveCache/RemoveScene3Resource
+@onready var button_remove_cached_scene_3: Button = $VBoxContainer/HBoxContainer/VBoxContainer/Scene3RemoveCache/RemoveScene3Instance
+@onready var button_remove_preload_scene_4: Button = $VBoxContainer/HBoxContainer/VBoxContainer/Scene4RemoveCache/RemoveScene4Resource
+@onready var button_remove_cached_scene_4: Button = $VBoxContainer/HBoxContainer/VBoxContainer/Scene4RemoveCache/RemoveScene4Instance
+@onready var button_remove_preload_scene_5: Button = $VBoxContainer/HBoxContainer/VBoxContainer/Scene5RemoveCache/RemoveScene5Resource
+@onready var button_remove_cached_scene_5: Button = $VBoxContainer/HBoxContainer/VBoxContainer/Scene5RemoveCache/RemoveScene5Instance
 
 
 
@@ -47,6 +55,13 @@ func _ready():
 	button_switch_scene_4_direct.pressed.connect(_on_switch_scene_4_direct_pressed)
 	button_switch_scene_5_with_preload.pressed.connect(_on_switch_scene_5_with_preload_pressed)
 	button_switch_scene_5_direct.pressed.connect(_on_switch_scene_5_direct_pressed)
+	# 连接移除缓存按钮信号
+	button_remove_preload_scene_3.pressed.connect(_on_remove_preload_scene_3_pressed)
+	button_remove_cached_scene_3.pressed.connect(_on_remove_cached_scene_3_pressed)
+	button_remove_preload_scene_4.pressed.connect(_on_remove_preload_scene_4_pressed)
+	button_remove_cached_scene_4.pressed.connect(_on_remove_cached_scene_4_pressed)
+	button_remove_preload_scene_5.pressed.connect(_on_remove_preload_scene_5_pressed)
+	button_remove_cached_scene_5.pressed.connect(_on_remove_cached_scene_5_pressed)
 	is_first_enter = false
 	_update_info()
 	
@@ -197,3 +212,34 @@ func _on_scene_switch_started(from_scene: String, to_scene: String):
 
 func _on_scene_switch_completed(scene_path: String):
 	print("场景2 - 切换完成: ", scene_path)
+
+# ============== 移除缓存功能 ==============
+func _on_remove_preload_scene_3_pressed():
+	print("移除预加载资源场景3")
+	LongSceneManager.remove_preloaded_resource(TEST_SCENE_3_PATH)
+	_update_info()
+
+func _on_remove_cached_scene_3_pressed():
+	print("移除实例化缓存场景3")
+	LongSceneManager.remove_cached_scene(TEST_SCENE_3_PATH)
+	_update_info()
+
+func _on_remove_preload_scene_4_pressed():
+	print("移除预加载资源场景4")
+	LongSceneManager.remove_preloaded_resource(TEST_SCENE_4_PATH)
+	_update_info()
+
+func _on_remove_cached_scene_4_pressed():
+	print("移除实例化缓存场景4")
+	LongSceneManager.remove_cached_scene(TEST_SCENE_4_PATH)
+	_update_info()
+
+func _on_remove_preload_scene_5_pressed():
+	print("移除预加载资源场景5")
+	LongSceneManager.remove_preloaded_resource(TEST_SCENE_5_PATH)
+	_update_info()
+
+func _on_remove_cached_scene_5_pressed():
+	print("移除实例化缓存场景5")
+	LongSceneManager.remove_cached_scene(TEST_SCENE_5_PATH)
+	_update_info()

@@ -45,17 +45,23 @@ size_flags_vertical = 3
 [node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer" unique_id=1594504904]
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 4
 alignment = 1
 
-[node name="Button_Main" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer" unique_id=784949466]
-custom_minimum_size = Vector2(200, 60)
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer" unique_id=1063576243]
 layout_mode = 2
-text = "Button_Main"
 
-[node name="Button_Scene1" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer" unique_id=505550171]
+[node name="Button_Main" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer" unique_id=784949466]
 custom_minimum_size = Vector2(200, 60)
 layout_mode = 2
-text = "Button_Scene1"
+size_flags_horizontal = 3
+text = "MainUI"
+
+[node name="Button_Scene1" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer" unique_id=505550171]
+custom_minimum_size = Vector2(200, 60)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Scene1"
 
 [node name="scene3" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer" unique_id=726910669]
 layout_mode = 2
@@ -81,6 +87,23 @@ custom_minimum_size = Vector2(200, 60)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Switch to Scene 3 Direct"
+autowrap_mode = 3
+
+[node name="Scene3RemoveCache" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer" unique_id=1312586162]
+layout_mode = 2
+
+[node name="RemoveScene3Resource" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/Scene3RemoveCache" unique_id=1176250480]
+custom_minimum_size = Vector2(200, 60)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Remove Scene 3 Resource"
+autowrap_mode = 3
+
+[node name="RemoveScene3Instance" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/Scene3RemoveCache" unique_id=2107237874]
+custom_minimum_size = Vector2(200, 60)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "RemoveScene3Instance"
 autowrap_mode = 3
 
 [node name="scene4" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer" unique_id=962945234]
@@ -109,6 +132,23 @@ size_flags_horizontal = 3
 text = "Switch to Scene 4 Direct"
 autowrap_mode = 3
 
+[node name="Scene4RemoveCache" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer" unique_id=1125669267]
+layout_mode = 2
+
+[node name="RemoveScene4Resource" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/Scene4RemoveCache" unique_id=890199493]
+custom_minimum_size = Vector2(200, 60)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Remove Scene 4 Resource"
+autowrap_mode = 3
+
+[node name="RemoveScene4Instance" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/Scene4RemoveCache" unique_id=1429800758]
+custom_minimum_size = Vector2(200, 60)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "RemoveScene4Instance"
+autowrap_mode = 3
+
 [node name="Scene5" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer" unique_id=388494103]
 layout_mode = 2
 size_flags_vertical = 3
@@ -135,9 +175,27 @@ size_flags_horizontal = 3
 text = "Switch to Scene 5 Direct"
 autowrap_mode = 3
 
+[node name="Scene5RemoveCache" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer" unique_id=1408670832]
+layout_mode = 2
+
+[node name="RemoveScene5Resource" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/Scene5RemoveCache" unique_id=1917140849]
+custom_minimum_size = Vector2(200, 60)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Remove Scene 5 Resource"
+autowrap_mode = 3
+
+[node name="RemoveScene5Instance" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/Scene5RemoveCache" unique_id=527104585]
+custom_minimum_size = Vector2(200, 60)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "RemoveScene5Instance"
+autowrap_mode = 3
+
 [node name="VBoxContainer2" type="VBoxContainer" parent="VBoxContainer/HBoxContainer" unique_id=744612951]
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 4
 alignment = 1
 
 [node name="Label_Info" type="Label" parent="VBoxContainer/HBoxContainer/VBoxContainer2" unique_id=500112910]
@@ -151,6 +209,7 @@ autowrap_mode = 3
 
 [node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer" unique_id=1614256736]
 layout_mode = 2
+size_flags_vertical = 8
 alignment = 1
 
 [node name="scene3" type="HBoxContainer" parent="VBoxContainer/VBoxContainer" unique_id=1061363954]
@@ -198,5 +257,9 @@ vertical_alignment = 1
 layout_mode = 2
 size_flags_horizontal = 3
 
-[connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/Button_Main" to="." method="_on_button_main_pressed"]
-[connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/Button_Scene1" to="." method="_on_button_scene_1_pressed"]
+[node name="Control" type="Control" parent="VBoxContainer" unique_id=592704562]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer/Button_Main" to="." method="_on_button_main_pressed"]
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer/Button_Scene1" to="." method="_on_button_scene_1_pressed"]

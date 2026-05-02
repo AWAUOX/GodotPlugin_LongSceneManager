@@ -76,6 +76,9 @@ var _is_switching: bool = false
 
 var _scenes_to_reset: Dictionary = {}
 
+# 记录被移除的场景，防止重新进入缓存
+var _removed_scenes: Dictionary = {}
+
 func _get_preload_state(scene_path: String) -> Dictionary:
 	if not _preload_states.has(scene_path):
 		_preload_states[scene_path] = {"state": LoadState.NOT_LOADED, "resource": null}
@@ -322,6 +325,50 @@ func clear_cache() -> void:
 			cache_access_order.remove_at(index)
 	
 	print("[SceneManager] Cache cleared")
+
+func remove_preloaded_resource(scene_path: String) -> void:
+	# 只清理预加载资源缓存及相关状态
+	if preload_resource_cache.has(scene_path) or _preload_states.has(scene_path):
+		preload_resource_cache.erase(scene_path)
+		
+		var index = preload_resource_cache_access_order.find(scene_path)
+		if index != -1:
+			preload_resource_cache_access_order.remove_at(index)
+		
+		# 清除预加载状态，防止状态残留导致无法重新预加载
+		_clear_preload_state(scene_path)
+		
+		print("[SceneManager] Removed preloaded resource: ", scene_path)
+		scene_removed_from_cache.emit(scene_path)
+	else:
+		print("[SceneManager] Warning: Preloaded resource not found in cache: ", scene_path)
+		if scene_cache.has(scene_path):
+			print("[SceneManager] Hint: Scene is in instance cache. Use 'remove_cached_scene()' to remove instance cache.")
+
+func remove_cached_scene(scene_path: String) -> void:
+	# 只清理实例化场景缓存及相关状态
+	if scene_cache.has(scene_path):
+		var cached = scene_cache[scene_path]
+
+		if is_instance_valid(cached.scene_instance):
+			_cleanup_orphaned_nodes(cached.scene_instance)
+			cached.scene_instance.queue_free()
+
+		scene_cache.erase(scene_path)
+
+		var index = cache_access_order.find(scene_path)
+		if index != -1:
+			cache_access_order.remove_at(index)
+		
+		# 清除可能残留的预加载状态
+		_clear_preload_state(scene_path)
+
+		print("[SceneManager] Removed cached scene: ", scene_path)
+		scene_removed_from_cache.emit(scene_path)
+	else:
+		print("[SceneManager] Warning: Cached scene not found in cache: ", scene_path)
+		if preload_resource_cache.has(scene_path):
+			print("[SceneManager] Hint: Scene is in preload resource cache. Use 'remove_preloaded_resource()' to remove preload cache.")
 
 func get_cache_info() -> Dictionary:
 	# 实例化场景缓存板块
@@ -649,7 +696,13 @@ func _instantiate_and_switch(scene_path: String, load_screen_instance: Node, use
 
 	print("[SceneManager] Instantiating preloaded scene: ", scene_path)
 
-	var packed_scene = preload_resource_cache[scene_path]
+	var packed_scene = preload_resource_cache.get(scene_path)
+	# 从预加载缓存移除（参考 _handle_preloaded_resource 的正确做法）
+	preload_resource_cache.erase(scene_path)
+	var index = preload_resource_cache_access_order.find(scene_path)
+	if index != -1:
+		preload_resource_cache_access_order.remove_at(index)
+
 	var new_scene = await _instantiate_scene_deferred(packed_scene, load_screen_instance)
 	if not new_scene:
 		push_error("[SceneManager] Scene instantiation failed")
@@ -764,7 +817,7 @@ func _add_to_cache(scene_path: String, scene_instance: Node) -> void:
 	if scene_path == "" or not scene_instance:
 		print("[SceneManager] Warning: Cannot cache empty scene or path")
 		return
-	
+
 	if scene_cache.has(scene_path):
 		print("[SceneManager] Scene already in instance cache: ", scene_path)
 		var old_cached = scene_cache[scene_path]
@@ -775,20 +828,20 @@ func _add_to_cache(scene_path: String, scene_instance: Node) -> void:
 		var index = cache_access_order.find(scene_path)
 		if index != -1:
 			cache_access_order.remove_at(index)
-	
+
 	_cleanup_orphaned_nodes(scene_instance)
-	
+
 	if scene_instance.is_inside_tree():
 		push_error("[SceneManager] Error: Attempting to cache node still in scene tree")
 		scene_instance.get_parent().remove_child(scene_instance)
-	
+
 	print("[SceneManager] Adding to instance cache: ", scene_path)
-	
+
 	var cached = CachedScene.new(scene_instance)
 	scene_cache[scene_path] = cached
 	cache_access_order.append(scene_path)
 	scene_cached.emit(scene_path)
-	
+
 	if cache_access_order.size() > max_cache_size:
 		_remove_oldest_cached_scene()
 

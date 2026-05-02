@@ -5,7 +5,7 @@
 Long Scene Manager 是一个 Godot 插件，旨在简化和优化场景切换过程，特别是对于需要长时间加载的复杂场景。它通过提供异步场景加载、缓存机制和可定制的加载界面来改善用户体验。
 
 ---
-<img src="./addons/long_scene_manager/image_icon/icon2.png" width = 30%>
+<img src="./addons/long_scene_manager/image_icon/icon3.png" width = 30%>
 
 ## 项目介绍
 

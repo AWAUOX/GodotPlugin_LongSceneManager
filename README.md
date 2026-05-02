@@ -5,7 +5,7 @@
 The Long Scene Manager is a Godot plugin designed to simplify and optimize the scene switching process, especially for complex scenes that require long loading times. It improves user experience by providing asynchronous scene loading, caching mechanisms, and customizable loading interfaces.
 
 ---
-<img src="./addons/long_scene_manager/image_icon/icon2.png" width = 30%>
+<img src="./addons/long_scene_manager/image_icon/icon3.png" width = 30%>
 
 ## Project Introduction
 

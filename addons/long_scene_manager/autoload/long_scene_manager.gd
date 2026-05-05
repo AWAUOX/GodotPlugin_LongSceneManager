@@ -84,6 +84,8 @@ var preload_resource_cache_access_order: Array = []
 
 var _preload_states: Dictionary = {}
 
+var _preload_pending_cleanup: Dictionary = {}
+
 var _is_switching: bool = false
 
 var _scenes_to_reset: Dictionary = {}
@@ -272,8 +274,9 @@ func preload_scenes(scene_paths: Array[String]) -> void:
 # Cancel scene preloading if in progress. 取消正在进行的场景预加载。
 func cancel_preload_scene(scene_path: String) -> void:
 	if _preload_states.has(scene_path) and _preload_states[scene_path]["state"] == LoadState.LOADING:
+		_preload_pending_cleanup[scene_path] = true
 		_clear_preload_state(scene_path)
-		print("[SceneManager] Cancelled preload: ", scene_path)
+		print("[SceneManager] Cancelled preload, marked for cleanup: ", scene_path)
 
 # Cancel all scenes that are currently preloading. 取消所有正在预加载的场景。
 func cancel_all_preloads() -> void:
@@ -302,6 +305,12 @@ func _preload_background(scene_path: String) -> void:
 		return
 	
 	if preload_state["resource"]:
+		if _preload_pending_cleanup.has(scene_path):
+			_preload_pending_cleanup.erase(scene_path)
+			preload_resource_cache.erase(scene_path)
+			print("[SceneManager] Preload completed but cancelled by user, cleaned up: ", scene_path)
+			return
+		
 		preload_resource_cache[scene_path] = preload_state["resource"]
 		preload_resource_cache_access_order.append(scene_path)
 		preload_state["state"] = LoadState.LOADED

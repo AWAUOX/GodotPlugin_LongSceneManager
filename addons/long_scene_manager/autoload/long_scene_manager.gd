@@ -834,33 +834,33 @@ func _load_scene_by_method(scene_path: String, load_method: LoadMethod, cache_cu
 	await _show_load_screen(load_screen_instance)
 
 	match load_method:
-		LoadMethod.DIRECT, 0:
+		LoadMethod.DIRECT, 0, "DIRECT":
 			if temp_preloaded_resource_cache.has(scene_path) or fixed_preload_resource_cache.has(scene_path):
 				print("[SceneManager] DIRECT: resource found in preload cache, using preloaded resource")
 				await _handle_preloaded_resource(scene_path, load_screen_instance, cache_current_scene)
 			else:
 				print("[SceneManager] DIRECT: resource not in any cache, using async loading")
 				await _load_and_switch(scene_path, load_screen_instance, cache_current_scene)
-		LoadMethod.PRELOAD_CACHE, 1:
+		LoadMethod.PRELOAD_CACHE, 1, "PRELOAD_CACHE":
 			if temp_preloaded_resource_cache.has(scene_path) or fixed_preload_resource_cache.has(scene_path):
 				await _handle_preloaded_resource(scene_path, load_screen_instance, cache_current_scene)
 			else:
 				print("[SceneManager] PRELOAD_CACHE: resource not in preload cache, falling back to direct load")
 				await _load_and_switch(scene_path, load_screen_instance, cache_current_scene)
-		LoadMethod.SCENE_CACHE, 2:
+		LoadMethod.SCENE_CACHE, 2, "SCENE_CACHE":
 			if instantiate_scene_cache.has(scene_path):
 				await _handle_cached_scene(scene_path, load_screen_instance, cache_current_scene)
 			else:
 				print("[SceneManager] SCENE_CACHE: scene not in instance cache, falling back to direct load")
 				await _load_and_switch(scene_path, load_screen_instance, cache_current_scene)
-		LoadMethod.BOTH_PRELOAD_FIRST, 3:
+		LoadMethod.BOTH_PRELOAD_FIRST, 3, "BOTH_PRELOAD_FIRST":
 			if temp_preloaded_resource_cache.has(scene_path) or fixed_preload_resource_cache.has(scene_path):
 				await _handle_preloaded_resource(scene_path, load_screen_instance, cache_current_scene)
 			elif instantiate_scene_cache.has(scene_path):
 				await _handle_cached_scene(scene_path, load_screen_instance, cache_current_scene)
 			else:
 				await _handle_preloading_scene(scene_path, load_screen_instance, cache_current_scene)
-		LoadMethod.BOTH_INSTANCE_FIRST, 4:
+		LoadMethod.BOTH_INSTANCE_FIRST, 4, "BOTH_INSTANCE_FIRST":
 			if instantiate_scene_cache.has(scene_path):
 				await _handle_cached_scene(scene_path, load_screen_instance, cache_current_scene)
 			elif temp_preloaded_resource_cache.has(scene_path) or fixed_preload_resource_cache.has(scene_path):

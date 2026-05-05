@@ -9,31 +9,39 @@ const TEST_SCENE_5_PATH = "res://demo_test_scene_manager/test_scene_5.tscn"
 const CUSTOM_LOADING_SCENE = "res://demo_test_scene_manager/custom_load_screen/custom_load_screen.tscn"
 
 # Button declarations (including new scene4/scene5 switch buttons) 按钮声明（含新增的scene4/scene5切换按钮）
-@onready var button_main: Button = $VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer/Button_Main
-@onready var button_scene1: Button = $VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer/Button_Scene1
 
 
-@onready var button_preload_scene_3: Button = $VBoxContainer/HBoxContainer/VBoxContainer/scene3/Button_PreloadScene3
-@onready var button_switch_scene_3_with_preload: Button = $VBoxContainer/HBoxContainer/VBoxContainer/scene3/Button_SwitchScene3WithPreload
-@onready var button_switch_scene_3_direct: Button = $VBoxContainer/HBoxContainer/VBoxContainer/scene3/Button_SwitchScene3Direct
-@onready var button_preload_scene_4: Button = $VBoxContainer/HBoxContainer/VBoxContainer/scene4/Button_PreloadScene4
-@onready var button_switch_scene_4_with_preload: Button = $VBoxContainer/HBoxContainer/VBoxContainer/scene4/Button_SwitchScene4WithPreload
-@onready var button_switch_scene_4_direct: Button = $VBoxContainer/HBoxContainer/VBoxContainer/scene4/Button_SwitchScene4Direct
-@onready var button_preload_scene_5: Button = $VBoxContainer/HBoxContainer/VBoxContainer/Scene5/Button_PreloadScene5
-@onready var button_switch_scene_5_with_preload: Button = $VBoxContainer/HBoxContainer/VBoxContainer/Scene5/Button_SwitchScene5WithPreload
-@onready var button_switch_scene_5_direct: Button = $VBoxContainer/HBoxContainer/VBoxContainer/Scene5/Button_SwitchScene5Direct
+#以下为真
+@onready var button_main: Button = $VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer/Button_Main
+@onready var button_scene1: Button = $VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer/Button_Scene1
+@onready var preload_all: Button = $VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer/PreloadAll
+@onready var cancel_all_preload: Button = $VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer/CancelAllPreload
+@onready var cancel_preload_scene_3: Button = $VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer/CancelPreloadScene3
+@onready var button_preload_scene_3: Button = $VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer/Button_PreloadScene3
+@onready var button_switch_scene_3_with_preload: Button = $VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer/Button_SwitchScene3WithPreload
+@onready var button_switch_scene_3_direct: Button = $VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer/Button_SwitchScene3Direct
+@onready var button_remove_preload_scene_3: Button = $VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer/RemoveScene3Resource
+@onready var button_remove_cached_scene_3: Button = $VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer/RemoveScene3Instance
+@onready var button_preload_scene_4: Button = $VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer/Button_PreloadScene4
+@onready var button_switch_scene_4_with_preload: Button = $VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer/Button_SwitchScene4WithPreload
+@onready var button_switch_scene_4_direct: Button = $VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer/Button_SwitchScene4Direct
+@onready var button_remove_preload_scene_4: Button = $VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer/RemoveScene4Resource
+@onready var button_remove_cached_scene_4: Button = $VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer/RemoveScene4Instance
+@onready var button_preload_scene_5: Button = $VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer/Button_PreloadScene5
+@onready var button_switch_scene_5_with_preload: Button = $VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer/Button_SwitchScene5WithPreload
+@onready var button_switch_scene_5_direct: Button = $VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer/Button_SwitchScene5Direct
+@onready var button_remove_preload_scene_5: Button = $VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer/RemoveScene5Resource
+@onready var button_remove_cached_scene_5: Button = $VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer/RemoveScene5Instance
 
-@onready var button_remove_preload_scene_3: Button = $VBoxContainer/HBoxContainer/VBoxContainer/Scene3RemoveCache/RemoveScene3Resource
-@onready var button_remove_cached_scene_3: Button = $VBoxContainer/HBoxContainer/VBoxContainer/Scene3RemoveCache/RemoveScene3Instance
-@onready var button_remove_preload_scene_4: Button = $VBoxContainer/HBoxContainer/VBoxContainer/Scene4RemoveCache/RemoveScene4Resource
-@onready var button_remove_cached_scene_4: Button = $VBoxContainer/HBoxContainer/VBoxContainer/Scene4RemoveCache/RemoveScene4Instance
-@onready var button_remove_preload_scene_5: Button = $VBoxContainer/HBoxContainer/VBoxContainer/Scene5RemoveCache/RemoveScene5Resource
-@onready var button_remove_cached_scene_5: Button = $VBoxContainer/HBoxContainer/VBoxContainer/Scene5RemoveCache/RemoveScene5Instance
+
+
+
+@onready var label_info: Label = $VBoxContainer/HBoxContainer/VBoxContainer2/ScrollContainer/Label_Info
 
 
 
 
-@onready var label_info: Label = $VBoxContainer/HBoxContainer/VBoxContainer2/Label_Info
+
 @onready var progress_bar_preload_scene_3: ProgressBar = $VBoxContainer/MarginContainer/VBoxContainer/scene3/ProgressBar_PreloadScene3
 @onready var progress_bar_preload_scene_4: ProgressBar = $VBoxContainer/MarginContainer/VBoxContainer/scene4/ProgressBar_PreloadScene4
 @onready var progress_bar_preload_scene_5: ProgressBar = $VBoxContainer/MarginContainer/VBoxContainer/scene5/ProgressBar_PreloadScene5
@@ -125,10 +133,16 @@ func _update_info():
 	var instance_list = "\n".join(instance_paths) if not instance_paths.is_empty() else "（empty）"
 
 	# Process preload resource cache list 处理预加载资源缓存列表
-	var preload_list = "\n".join(cache_info.preload_cache.scenes) if not cache_info.preload_cache.scenes.is_empty() else "（empty）"
+	var preload_list = "\n".join(cache_info.temp_preload_cache.scenes) if not cache_info.temp_preload_cache.scenes.is_empty() else "（empty）"
 
 	# Process permanent preload resource cache list 处理永久预加载资源缓存列表
-	var permanent_preload_list = "\n".join(cache_info.permanent_preload_cache.scenes) if not cache_info.permanent_preload_cache.scenes.is_empty() else "（empty）"
+	var permanent_preload_list = "\n".join(cache_info.fixed_preload_cache.scenes) if not cache_info.fixed_preload_cache.scenes.is_empty() else "（empty）"
+
+	# Process preload states list 处理预加载状态缓存列表
+	var preload_states_list = []
+	for s in cache_info.preload_states.states:
+		preload_states_list.append(s.path + " [" + str(s.state) + "]")
+	var preload_states_str = "\n".join(preload_states_list) if not preload_states_list.is_empty() else "（empty）"
 
 	label_info.text = """
 Current Scene: {current}
@@ -138,25 +152,31 @@ Previous Scene: {previous}
 Scene List:
 {instance_list}
 
-[Preloaded Resource Cache] Count: {preload_count}/{preload_max}
+[Temporary Preload Cache] Count: {preload_count}/{preload_max}
 Resource List:
 {preload_list}
 
-[Permanent Preload Cache] Count: {permanent_count}/{permanent_max}
+[Fixed Preload Cache] Count: {permanent_count}/{permanent_max}
 Resource List:
 {permanent_preload_list}
+
+[Preload States] Count: {preload_states_count}
+States:
+{preload_states_str}
 """.format({
 		"current": cache_info.current_scene,
 		"previous": cache_info.previous_scene,
 		"instance_count": cache_info.instance_cache.size,
 		"instance_max": cache_info.instance_cache.max_size,
 		"instance_list": instance_list,
-		"preload_count": cache_info.preload_cache.size,
-		"preload_max": cache_info.preload_cache.max_size,
+		"preload_count": cache_info.temp_preload_cache.size,
+		"preload_max": cache_info.temp_preload_cache.max_size,
 		"preload_list": preload_list,
-		"permanent_count": cache_info.permanent_preload_cache.size,
-		"permanent_max": cache_info.permanent_preload_cache.max_size,
-		"permanent_preload_list": permanent_preload_list
+		"permanent_count": cache_info.fixed_preload_cache.size,
+		"permanent_max": cache_info.fixed_preload_cache.max_size,
+		"permanent_preload_list": permanent_preload_list,
+		"preload_states_count": cache_info.preload_states.size,
+		"preload_states_str": preload_states_str
 	})
 
 # Original switch functions 原有切换函数
@@ -227,7 +247,7 @@ func _on_scene_switch_completed(scene_path: String):
 # ==============remove cache 移除缓存功能 ==============
 func _on_remove_preload_scene_3_pressed():
 	print("remove preload resource scene3 移除预加载资源场景3")
-	LongSceneManager.remove_preloaded_resource(TEST_SCENE_3_PATH)
+	LongSceneManager.remove_temp_resource(TEST_SCENE_3_PATH)
 	_update_info()
 
 func _on_remove_cached_scene_3_pressed():
@@ -237,7 +257,7 @@ func _on_remove_cached_scene_3_pressed():
 
 func _on_remove_preload_scene_4_pressed():
 	print("remove preload resource scene4 移除预加载资源场景4")
-	LongSceneManager.remove_preloaded_resource(TEST_SCENE_4_PATH)
+	LongSceneManager.remove_temp_resource(TEST_SCENE_4_PATH)
 	_update_info()
 
 func _on_remove_cached_scene_4_pressed():
@@ -247,7 +267,7 @@ func _on_remove_cached_scene_4_pressed():
 
 func _on_remove_preload_scene_5_pressed():
 	print("remove preload resource scene5 移除预加载资源场景5")
-	LongSceneManager.remove_preloaded_resource(TEST_SCENE_5_PATH)
+	LongSceneManager.remove_temp_resource(TEST_SCENE_5_PATH)
 	_update_info()
 
 func _on_remove_cached_scene_5_pressed():
@@ -264,13 +284,49 @@ func _on_preload_all_pressed() -> void:
 
 func _on_cancel_all_preload_pressed() -> void:
 	set_process(true)
-	LongSceneManager.cancel_all_preloads()
+	LongSceneManager.cancel_all_preloading()
 	_update_info()
 
 
 
 func _on_cancel_preload_scene_3_pressed() -> void:
 	set_process(true)
-	LongSceneManager.cancel_preload_scene(TEST_SCENE_3_PATH)
+	LongSceneManager.cancel_preloading_scene(TEST_SCENE_3_PATH)
 	_update_info()
 	
+
+
+func _on_sceneto_temp_pressed() -> void:
+	print("Move scene 3 from fixed to temp cache 将场景3从固定缓存移至临时缓存")
+	LongSceneManager.move_to_temp(TEST_SCENE_5_PATH)
+	_update_info()
+
+func _on_scenetofixed_pressed() -> void:
+	print("Move scene 3 from temp to fixed cache 将场景3从临时缓存移至固定缓存")
+	LongSceneManager.move_to_fixed(TEST_SCENE_5_PATH)
+	_update_info()
+
+func _on_clear_temp_cache_pressed() -> void:
+	print("Clear temp preload cache 清除临时预加载缓存")
+	LongSceneManager.clear_temp_preload_cache()
+	_update_info()
+
+func _on_clearfixed_cache_pressed() -> void:
+	print("Clear fixed preload cache 清除固定预加载缓存")
+	LongSceneManager.clear_fixed_cache()
+	_update_info()
+
+func _on_clearinstance_cache_pressed() -> void:
+	print("Clear instance cache 清除实例化场景缓存")
+	LongSceneManager.clear_instance_cache()
+	_update_info()
+
+func _on_remove_temp_resource_4_pressed() -> void:
+	print("Remove temp resource scene 4 移除临时预加载资源场景4")
+	LongSceneManager.remove_temp_resource(TEST_SCENE_4_PATH)
+	_update_info()
+
+func _on_remove_fix_resource_4_pressed() -> void:
+	print("Remove fixed resource scene 4 移除固定预加载资源场景4")
+	LongSceneManager.remove_fixed_resource(TEST_SCENE_4_PATH)
+	_update_info()

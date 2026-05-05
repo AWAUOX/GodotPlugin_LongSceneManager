@@ -4,11 +4,14 @@ const TEST_SCENE_2_PATH = "res://demo_test_scene_manager/test_scene_2.tscn"
 
 @onready var timer_label: Label = $Camera3D/CanvasLayer/VBoxContainer/HBoxContainer/TimerLabel
 @onready var timer: Timer = $Camera3D/CanvasLayer/VBoxContainer/HBoxContainer/TimerLabel/Timer
+@onready var scene_size: Label = $Camera3D/CanvasLayer/VBoxContainer/HBoxContainer/Label5
 
 
 
 func _ready() -> void:
 	print("=== Test Scene 3 Loaded 测试场景3加载完成 ===")
+	
+	scene_size.text = LongSceneManager.get_resource_file_size_formatted("res://demo_test_scene_manager/test_scene_3.tscn")
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and event.keycode == KEY_Q:

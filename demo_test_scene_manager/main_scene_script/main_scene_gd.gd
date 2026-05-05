@@ -27,7 +27,7 @@ func _ready():
 	button_scene_2.pressed.connect(_on_scene2_pressed)
 	button_preload_1.pressed.connect(_on_preload1_pressed)
 	button_preload_2.pressed.connect(_on_preload2_pressed)
-	button_clear_cache.pressed.connect(_on_clear_cache_pressed)
+	button_clear_cache.pressed.connect(_on_clear_all_cache_pressed)
 	
 	# Update info label 更新信息标签
 	_update_info_label()
@@ -58,10 +58,16 @@ func _update_info_label():
 	var instance_list = "\n".join(instance_paths) if not instance_paths.is_empty() else "（empty）"
 
 	# Process preload resource cache list 处理预加载资源缓存列表
-	var preload_list = "\n".join(cache_info.preload_cache.scenes) if not cache_info.preload_cache.scenes.is_empty() else "（empty）"
+	var preload_list = "\n".join(cache_info.temp_preload_cache.scenes) if not cache_info.temp_preload_cache.scenes.is_empty() else "（empty）"
 
 	# Process permanent preload resource cache list 处理永久预加载资源缓存列表
-	var permanent_preload_list = "\n".join(cache_info.permanent_preload_cache.scenes) if not cache_info.permanent_preload_cache.scenes.is_empty() else "（empty）"
+	var permanent_preload_list = "\n".join(cache_info.fixed_preload_cache.scenes) if not cache_info.fixed_preload_cache.scenes.is_empty() else "（empty）"
+
+	# Process preload states list 处理预加载状态缓存列表
+	var preload_states_list = []
+	for s in cache_info.preload_states.states:
+		preload_states_list.append(s.path + " [" + str(s.state) + "]")
+	var preload_states_str = "\n".join(preload_states_list) if not preload_states_list.is_empty() else "（empty）"
 
 	label_info.text = """
 Current Scene: {current}
@@ -71,25 +77,31 @@ Previous Scene: {previous}
 Scene List:
 {instance_list}
 
-[Preloaded Resource Cache] Count: {preload_count}/{preload_max}
+[Temporary Preload Cache] Count: {preload_count}/{preload_max}
 Resource List:
 {preload_list}
 
-[Permanent Preload Cache] Count: {permanent_count}/{permanent_max}
+[Fixed Preload Cache] Count: {permanent_count}/{permanent_max}
 Resource List:
 {permanent_preload_list}
+
+[Preload States] Count: {preload_states_count}
+States:
+{preload_states_str}
 """.format({
 		"current": cache_info.current_scene,
 		"previous": cache_info.previous_scene,
 		"instance_count": cache_info.instance_cache.size,
 		"instance_max": cache_info.instance_cache.max_size,
 		"instance_list": instance_list,
-		"preload_count": cache_info.preload_cache.size,
-		"preload_max": cache_info.preload_cache.max_size,
+		"preload_count": cache_info.temp_preload_cache.size,
+		"preload_max": cache_info.temp_preload_cache.max_size,
 		"preload_list": preload_list,
-		"permanent_count": cache_info.permanent_preload_cache.size,
-		"permanent_max": cache_info.permanent_preload_cache.max_size,
-		"permanent_preload_list": permanent_preload_list
+		"permanent_count": cache_info.fixed_preload_cache.size,
+		"permanent_max": cache_info.fixed_preload_cache.max_size,
+		"permanent_preload_list": permanent_preload_list,
+		"preload_states_count": cache_info.preload_states.size,
+		"preload_states_str": preload_states_str
 	})
 
 func _on_scene1_pressed():
@@ -116,11 +128,9 @@ func _on_preload2_pressed():
 	#LongSceneManager.print_debug_info()
 	_update_info_label()
 
-func _on_clear_cache_pressed():
-	##"Clear cache 清空缓存"""
-	print("Clear cache 清空缓存")
-	LongSceneManager.clear_cache()
-	#LongSceneManager.print_debug_info()
+func _on_clear_all_cache_pressed():
+	print("Clear all cache 清空所有缓存")
+	LongSceneManager.clear_all_cache()
 	_update_info_label()
 
 func _on_scene_switch_started(from_scene: String, to_scene: String):

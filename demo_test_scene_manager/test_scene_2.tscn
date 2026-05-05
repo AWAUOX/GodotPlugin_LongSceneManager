@@ -37,181 +37,199 @@ size_flags_vertical = 3
 [node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer" unique_id=1594504904]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 4
 alignment = 1
 
-[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer" unique_id=1063576243]
+[node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer" unique_id=1140136561]
 layout_mode = 2
+size_flags_vertical = 3
 
-[node name="Button_Main" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer" unique_id=784949466]
-custom_minimum_size = Vector2(200, 60)
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer" unique_id=268184877]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "MainUI"
-
-[node name="Button_Scene1" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer" unique_id=505550171]
-custom_minimum_size = Vector2(200, 60)
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Scene1"
-
-[node name="scene3" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer" unique_id=726910669]
-layout_mode = 2
 size_flags_vertical = 3
 alignment = 1
 
-[node name="Button_PreloadScene3" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/scene3" unique_id=66353143]
-custom_minimum_size = Vector2(200, 60)
+[node name="GridContainer" type="GridContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer" unique_id=1668834939]
+layout_mode = 2
+size_flags_vertical = 3
+columns = 5
+
+[node name="Button_PreloadScene3" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer" unique_id=66353143]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Preload Scene 3 "
 autowrap_mode = 3
 
-[node name="Button_SwitchScene3WithPreload" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/scene3" unique_id=1175633666]
-custom_minimum_size = Vector2(200, 60)
+[node name="Button_SwitchScene3WithPreload" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer" unique_id=1175633666]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Switch to Scene3 With Perload"
 autowrap_mode = 3
 
-[node name="Button_SwitchScene3Direct" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/scene3" unique_id=579437283]
-custom_minimum_size = Vector2(200, 60)
+[node name="Button_SwitchScene3Direct" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer" unique_id=579437283]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Switch to Scene 3 Direct"
 autowrap_mode = 3
 
-[node name="Scene3RemoveCache" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer" unique_id=1312586162]
-layout_mode = 2
-
-[node name="RemoveScene3Resource" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/Scene3RemoveCache" unique_id=1176250480]
-custom_minimum_size = Vector2(200, 60)
+[node name="RemoveScene3Resource" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer" unique_id=1176250480]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Remove Scene 3 Resource"
 autowrap_mode = 3
 
-[node name="RemoveScene3Instance" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/Scene3RemoveCache" unique_id=2107237874]
-custom_minimum_size = Vector2(200, 60)
+[node name="RemoveScene3Instance" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer" unique_id=2107237874]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "RemoveScene3Instance"
 autowrap_mode = 3
 
-[node name="scene4" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer" unique_id=962945234]
-layout_mode = 2
-size_flags_vertical = 3
-alignment = 1
-
-[node name="Button_PreloadScene4" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/scene4" unique_id=197937341]
-custom_minimum_size = Vector2(200, 60)
+[node name="Button_PreloadScene4" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer" unique_id=197937341]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Preload Scene 4 "
 autowrap_mode = 3
 
-[node name="Button_SwitchScene4WithPreload" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/scene4" unique_id=469595053]
-custom_minimum_size = Vector2(200, 60)
+[node name="Button_SwitchScene4WithPreload" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer" unique_id=469595053]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Switch to Scene4 With Preload"
 autowrap_mode = 3
 
-[node name="Button_SwitchScene4Direct" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/scene4" unique_id=1471768886]
-custom_minimum_size = Vector2(200, 60)
+[node name="Button_SwitchScene4Direct" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer" unique_id=1471768886]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Switch to Scene 4 Direct"
 autowrap_mode = 3
 
-[node name="Scene4RemoveCache" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer" unique_id=1125669267]
-layout_mode = 2
-
-[node name="RemoveScene4Resource" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/Scene4RemoveCache" unique_id=890199493]
-custom_minimum_size = Vector2(200, 60)
+[node name="RemoveScene4Resource" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer" unique_id=890199493]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Remove Scene 4 Resource"
 autowrap_mode = 3
 
-[node name="RemoveScene4Instance" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/Scene4RemoveCache" unique_id=1429800758]
-custom_minimum_size = Vector2(200, 60)
+[node name="RemoveScene4Instance" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer" unique_id=1429800758]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "RemoveScene4Instance"
 autowrap_mode = 3
 
-[node name="Scene5" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer" unique_id=388494103]
-layout_mode = 2
-size_flags_vertical = 3
-alignment = 1
-
-[node name="Button_PreloadScene5" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/Scene5" unique_id=1069503802]
-custom_minimum_size = Vector2(200, 60)
+[node name="Button_PreloadScene5" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer" unique_id=1069503802]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Preload Scene 5 "
 autowrap_mode = 3
 
-[node name="Button_SwitchScene5WithPreload" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/Scene5" unique_id=821794253]
-custom_minimum_size = Vector2(200, 60)
+[node name="Button_SwitchScene5WithPreload" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer" unique_id=821794253]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Switch to Scene5 With Preload"
 autowrap_mode = 3
 
-[node name="Button_SwitchScene5Direct" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/Scene5" unique_id=357039490]
-custom_minimum_size = Vector2(200, 60)
+[node name="Button_SwitchScene5Direct" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer" unique_id=357039490]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Switch to Scene 5 Direct"
 autowrap_mode = 3
 
-[node name="Scene5RemoveCache" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer" unique_id=1408670832]
-layout_mode = 2
-
-[node name="RemoveScene5Resource" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/Scene5RemoveCache" unique_id=1917140849]
-custom_minimum_size = Vector2(200, 60)
+[node name="RemoveScene5Resource" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer" unique_id=1917140849]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Remove Scene 5 Resource"
 autowrap_mode = 3
 
-[node name="RemoveScene5Instance" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/Scene5RemoveCache" unique_id=527104585]
-custom_minimum_size = Vector2(200, 60)
+[node name="RemoveScene5Instance" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer" unique_id=527104585]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "RemoveScene5Instance"
 autowrap_mode = 3
 
-[node name="OtherTest" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer" unique_id=312652061]
-custom_minimum_size = Vector2(0, 50)
+[node name="HBoxContainer" type="GridContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer" unique_id=1133579129]
 layout_mode = 2
+size_flags_vertical = 3
+columns = 5
 
-[node name="PreloadAll" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/OtherTest" unique_id=493923472]
+[node name="Button_Main" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer" unique_id=784949466]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "MainUI"
+autowrap_mode = 3
+
+[node name="Button_Scene1" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer" unique_id=505550171]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Scene1"
+autowrap_mode = 3
+
+[node name="PreloadAll" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer" unique_id=493923472]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "preload all"
+autowrap_mode = 3
 
-[node name="CancelAllPreload" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/OtherTest" unique_id=1999089946]
+[node name="CancelAllPreload" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer" unique_id=1999089946]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "cancel all preload"
+autowrap_mode = 3
 
-[node name="CancelPreloadScene3" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/OtherTest" unique_id=123397531]
+[node name="CancelPreloadScene3" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer" unique_id=123397531]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Cancel Preload Scene3"
+autowrap_mode = 3
 
-[node name="Button4" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/OtherTest" unique_id=1197530503]
+[node name="ScenetoTemp" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer" unique_id=1197530503]
 layout_mode = 2
 size_flags_horizontal = 3
+text = "Scene5 Move to Temp cache"
+autowrap_mode = 3
+
+[node name="Scenetofixed" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer" unique_id=2119473471]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Scene5 Move to fixed cache"
+autowrap_mode = 3
+
+[node name="ClearTempCache" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer" unique_id=1292527910]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Clear Temp Preload Cache"
+autowrap_mode = 3
+
+[node name="ClearfixedCache" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer" unique_id=338671320]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Clear Fixed Cache"
+autowrap_mode = 3
+
+[node name="ClearinstanceCache" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer" unique_id=268860360]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Clear Instance Cache"
+autowrap_mode = 3
+
+[node name="remove_temp_resource4" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer" unique_id=673774353]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Remove Temp Resource4"
+autowrap_mode = 3
+
+[node name="remove_fix_resource4" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer" unique_id=2103719405]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Remove Fix Resource4"
+autowrap_mode = 3
+
+[node name="remove_cached_scene4" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer" unique_id=1624240585]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Remove Cached Scene4"
+autowrap_mode = 3
 
 [node name="VBoxContainer2" type="VBoxContainer" parent="VBoxContainer/HBoxContainer" unique_id=744612951]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 4
-alignment = 1
 
 [node name="Label" type="Label" parent="VBoxContainer/HBoxContainer/VBoxContainer2" unique_id=540729030]
 layout_mode = 2
@@ -221,13 +239,16 @@ text = "scene2"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Label_Info" type="Label" parent="VBoxContainer/HBoxContainer/VBoxContainer2" unique_id=500112910]
+[node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer2" unique_id=311408156]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Label_Info" type="Label" parent="VBoxContainer/HBoxContainer/VBoxContainer2/ScrollContainer" unique_id=500112910]
 custom_minimum_size = Vector2(200, 200)
 layout_mode = 2
-size_flags_vertical = 6
+size_flags_horizontal = 3
+size_flags_vertical = 3
 text = "Label_Info"
-horizontal_alignment = 1
-vertical_alignment = 1
 autowrap_mode = 3
 
 [node name="MarginContainer" type="MarginContainer" parent="VBoxContainer" unique_id=386713605]
@@ -289,8 +310,16 @@ size_flags_horizontal = 3
 custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
 
-[connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer/Button_Main" to="." method="_on_button_main_pressed"]
-[connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer/Button_Scene1" to="." method="_on_button_scene_1_pressed"]
-[connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/OtherTest/PreloadAll" to="." method="_on_preload_all_pressed"]
-[connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/OtherTest/CancelAllPreload" to="." method="_on_cancel_all_preload_pressed"]
-[connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/OtherTest/CancelPreloadScene3" to="." method="_on_cancel_preload_scene_3_pressed"]
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer/Button_Main" to="." method="_on_button_main_pressed"]
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer/Button_Scene1" to="." method="_on_button_scene_1_pressed"]
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer/PreloadAll" to="." method="_on_preload_all_pressed"]
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer/CancelAllPreload" to="." method="_on_cancel_all_preload_pressed"]
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer/CancelPreloadScene3" to="." method="_on_cancel_preload_scene_3_pressed"]
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer/ScenetoTemp" to="." method="_on_sceneto_temp_pressed"]
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer/Scenetofixed" to="." method="_on_scenetofixed_pressed"]
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer/ClearTempCache" to="." method="_on_clear_temp_cache_pressed"]
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer/ClearfixedCache" to="." method="_on_clearfixed_cache_pressed"]
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer/ClearinstanceCache" to="." method="_on_clearinstance_cache_pressed"]
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer/remove_temp_resource4" to="." method="_on_remove_temp_resource_4_pressed"]
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer/remove_fix_resource4" to="." method="_on_remove_fix_resource_4_pressed"]
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer/remove_cached_scene4" to="." method="_on_remove_cached_scene_4_pressed"]

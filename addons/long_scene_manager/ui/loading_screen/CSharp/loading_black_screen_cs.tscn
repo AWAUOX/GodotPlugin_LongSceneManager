@@ -4,4 +4,4 @@
 
 [node name="LoadingBlackScreenCs" type="CanvasLayer"]
 script = ExtResource("1_ulfj1")
-Color = Color(0.23392546, 0.23392546, 0.2339254, 1)
+Color = Color(0, 0, 0, 1)

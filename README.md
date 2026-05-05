@@ -162,7 +162,7 @@ LongSceneManager.preload_scene("res://scenes/level2.tscn")
 
 # Can preload multiple scenes
 LongSceneManager.preload_scenes([
-    "res://scenes/level2.tscn",
+	"res://scenes/level2.tscn",
     "res://scenes/level3.tscn"
 ])
 ```
@@ -189,9 +189,9 @@ LongSceneManager.preload_scene("res://scenes/level2.tscn")
 
 # Wait for preload to complete (optional, switches immediately if already preloaded)
 await LongSceneManager.switch_scene(
-    "res://scenes/level2.tscn", 
-    true,   # Use cache
-    ""      # Use default loading screen
+	"res://scenes/level2.tscn", 
+	true,   # Use cache
+	""      # Use default loading screen
 )
 # Will retrieve from preload resource cache, very fast
 ```
@@ -216,8 +216,8 @@ await manager.SwitchScene("res://scenes/level2.tscn", true, "");
 # Directly load and switch scene (don't use cache mechanism)
 await LongSceneManager.switch_scene(
     "res://scenes/level2.tscn", 
-    false,  # false = don't use cache
-    ""     # Use default loading screen
+	false,  # false = don't use cache
+	""     # Use default loading screen
 )
 # Scene will start loading immediately, won't enter cache after switch
 ```
@@ -238,9 +238,9 @@ await manager.SwitchScene("res://scenes/level2.tscn", false, "");
 ```gdscript
 # Use custom loading screen for scene switching
 await LongSceneManager.switch_scene(
-    "res://scenes/level2.tscn", 
-    true,                       # Use cache
-    "res://ui/my_load_screen.tscn"  # Custom loading screen path
+	"res://scenes/level2.tscn", 
+	true,                       # Use cache
+	"res://ui/my_load_screen.tscn"  # Custom loading screen path
 )
 # Custom loading screen should implement fade_in(), fade_out() etc. to control transition effects
 ```
@@ -251,9 +251,9 @@ var manager = (LongSceneManagerCs.LongSceneManagerCs)GetNode("/root/LongSceneMan
 
 // Use custom loading screen
 await manager.SwitchScene(
-    "res://scenes/level2.tscn", 
-    true,                        
-    "res://ui/my_load_screen.tscn"  // Custom loading screen path
+	"res://scenes/level2.tscn", 
+	true,                        
+	"res://ui/my_load_screen.tscn"  // Custom loading screen path
 );
 ```
 
@@ -263,20 +263,20 @@ await manager.SwitchScene(
 extends CanvasLayer
 
 func fade_in():
-    # Fade-in effect (show loading screen)
-    print("Fade in started")
-    await get_tree().create_timer(0.5).timeout
-    print("Fade in completed")
+	# Fade-in effect (show loading screen)
+	print("Fade in started")
+	await get_tree().create_timer(0.5).timeout
+	print("Fade in completed")
 
 func fade_out():
-    # Fade-out effect (hide loading screen)
-    print("Fade out started")
-    await get_tree().create_timer(0.5).timeout
-    print("Fade out completed")
+	# Fade-out effect (hide loading screen)
+	print("Fade out started")
+	await get_tree().create_timer(0.5).timeout
+	print("Fade out completed")
 
 func set_progress(progress: float):
-    # Update progress bar (optional)
-    $ProgressBar.value = progress * 100
+	# Update progress bar (optional)
+	$ProgressBar.value = progress * 100
 ```
 
 ---
@@ -287,9 +287,9 @@ func set_progress(progress: float):
 ```gdscript
 # Use default loading screen (black background + "Loading..." text)
 await LongSceneManager.switch_scene(
-    "res://scenes/level2.tscn", 
-    true,  # Use cache
-    ""    # Empty string = use default loading screen
+	"res://scenes/level2.tscn", 
+	true,  # Use cache
+	""    # Empty string = use default loading screen
 )
 # Default loading screen will auto fade-in and fade-out
 ```
@@ -339,7 +339,7 @@ manager.SwitchSceneGD("res://scenes/level2.tscn", true, "no_transition");
 ```gdscript
 # Preload multiple scenes at once
 LongSceneManager.preload_scenes([
-    "res://scenes/level3.tscn",
+	"res://scenes/level3.tscn",
     "res://scenes/level4.tscn"
 ])
 
@@ -355,7 +355,7 @@ print("Loading progress: ", progress * 100, "%")
 
 # Check if scene is currently preloading
 if LongSceneManager.is_scene_preloading("res://scenes/level3.tscn"):
-    print("Scene is preloading...")
+	print("Scene is preloading...")
 ```
 
 #### C# Version
@@ -364,12 +364,12 @@ var manager = (LongSceneManagerCs.LongSceneManagerCs)GetNode("/root/LongSceneMan
 
 // Preload multiple scenes (call in loop)
 string[] scenesToPreload = {
-    "res://scenes/level3.tscn",
+	"res://scenes/level3.tscn",
     "res://scenes/level4.tscn"
 };
 foreach (var scene in scenesToPreload)
 {
-    manager.PreloadSceneGD(scene);
+	manager.PreloadSceneGD(scene);
 }
 
 // Cancel preloading
@@ -402,11 +402,11 @@ print("Preload cache count: ", cache_info.preload_cache.size, "/", cache_info.pr
 
 # Iterate through scenes in instance cache
 for item in cache_info.instance_cache.scenes:
-    print("Cached scene: ", item.path, " Cache time: ", item.cached_time)
+	print("Cached scene: ", item.path, " Cache time: ", item.cached_time)
 
 # Iterate through scenes in preload resource cache
 for scene_path in cache_info.preload_cache.scenes:
-    print("Preload resource: ", scene_path)
+	print("Preload resource: ", scene_path)
 
 # Dynamically adjust cache size (⚠️ Note: Try to determine size at start, avoid runtime changes)
 LongSceneManager.set_max_cache_size(10)       # Instance cache max 10 scenes
@@ -426,12 +426,12 @@ print("Cached scene instance removed")
 
 # Check if scene is already in any cache
 if LongSceneManager.is_scene_cached("res://scenes/level3.tscn"):
-    print("Scene already cached")
+	print("Scene already cached")
 
 # Get list of currently preloading scenes
 var loading = LongSceneManager.get_preloading_scenes()
 if loading.size() > 0:
-    print("Currently preloading scenes: ", loading)
+	print("Currently preloading scenes: ", loading)
 ```
 
 #### C# Version
@@ -470,14 +470,14 @@ GD.Print("Cached scene instance removed");
 // Check if scene is already in any cache
 if (manager.IsSceneCached("res://scenes/level3.tscn"))
 {
-    GD.Print("Scene already cached");
+	GD.Print("Scene already cached");
 }
 
 // Get list of currently preloading scenes
 var preloading = manager.GetPreloadingScenes();
 if (preloading.Count > 0)
 {
-    GD.Print($"Currently preloading scenes count: {preloading.Count}");
+	GD.Print($"Currently preloading scenes count: {preloading.Count}");
 }
 ```
 
@@ -770,130 +770,130 @@ The plugin provides **9 signals** for monitoring scene switches, preloading, and
 #### GDScript Version
 ```gdscript
 func _ready():
-    # Connect all scene manager signals
-    LongSceneManager.scene_switch_started.connect(_on_scene_switch_started)
-    LongSceneManager.scene_switch_completed.connect(_on_scene_switch_completed)
-    LongSceneManager.scene_preload_started.connect(_on_preload_started)
-    LongSceneManager.scene_preload_completed.connect(_on_preload_completed)
-    LongSceneManager.scene_preload_failed.connect(_on_preload_failed)
-    LongSceneManager.scene_switch_failed.connect(_on_switch_failed)
-    LongSceneManager.scene_cached.connect(_on_scene_cached)
-    LongSceneManager.scene_removed_from_cache.connect(_on_scene_removed)
-    LongSceneManager.load_screen_shown.connect(_on_load_screen_shown)
-    LongSceneManager.load_screen_hidden.connect(_on_load_screen_hidden))
+	# Connect all scene manager signals
+	LongSceneManager.scene_switch_started.connect(_on_scene_switch_started)
+	LongSceneManager.scene_switch_completed.connect(_on_scene_switch_completed)
+	LongSceneManager.scene_preload_started.connect(_on_preload_started)
+	LongSceneManager.scene_preload_completed.connect(_on_preload_completed)
+	LongSceneManager.scene_preload_failed.connect(_on_preload_failed)
+	LongSceneManager.scene_switch_failed.connect(_on_switch_failed)
+	LongSceneManager.scene_cached.connect(_on_scene_cached)
+	LongSceneManager.scene_removed_from_cache.connect(_on_scene_removed)
+	LongSceneManager.load_screen_shown.connect(_on_load_screen_shown)
+	LongSceneManager.load_screen_hidden.connect(_on_load_screen_hidden))
 
 # Scene switch signals
 func _on_scene_switch_started(from_scene: String, to_scene: String):
-    print("Scene switch started: ", from_scene, " -> ", to_scene)
+	print("Scene switch started: ", from_scene, " -> ", to_scene)
 
 func _on_scene_switch_completed(scene_path: String):
-    print("Scene switch completed: ", scene_path)
-    # Can update UI, play sound effects here
+	print("Scene switch completed: ", scene_path)
+	# Can update UI, play sound effects here
 
 func _on_scene_switch_failed(scene_path: String):
-    push_error("Scene switch failed: ", scene_path)
-    # Can show error prompt here
+	push_error("Scene switch failed: ", scene_path)
+	# Can show error prompt here
 
 # Preload signals
 func _on_preload_started(scene_path: String):
-    print("Scene preload started: ", scene_path)
+	print("Scene preload started: ", scene_path)
 
 func _on_preload_completed(scene_path: String):
-    print("Scene preload completed: ", scene_path)
-    # Can update UI here, prompt player can switch now
+	print("Scene preload completed: ", scene_path)
+	# Can update UI here, prompt player can switch now
 
 func _on_preload_failed(scene_path: String):
-    push_error("Scene preload failed: ", scene_path)
+	push_error("Scene preload failed: ", scene_path)
 
 # Cache signals
 func _on_scene_cached(scene_path: String):
-    print("Scene cached: ", scene_path)
+	print("Scene cached: ", scene_path)
 
 func _on_scene_removed(scene_path: String):
-    print("Scene removed from cache: ", scene_path)
+	print("Scene removed from cache: ", scene_path)
 
 # Loading screen signals
 func _on_load_screen_shown(load_screen_instance: Node):
-    print("Loading screen shown: ", load_screen_instance.name)
+	print("Loading screen shown: ", load_screen_instance.name)
 
 func _on_load_screen_hidden(load_screen_instance: Node):
-    print("Loading screen hidden: ", load_screen_instance.name)
+	print("Loading screen hidden: ", load_screen_instance.name)
 ```
 
 #### C# Version
 ```csharp
 public override void _Ready()
 {
-    var manager = (LongSceneManagerCs.LongSceneManagerCs)GetNode("/root/LongSceneManagerCs");
-    
-    // Connect all scene manager signals
-    manager.SceneSwitchStarted += OnSceneSwitchStarted;
-    manager.SceneSwitchCompleted += OnSceneSwitchCompleted;
-    manager.ScenePreloadStarted += OnScenePreloadStarted;
-    manager.ScenePreloadCompleted += OnScenePreloadCompleted;
-    manager.ScenePreloadFailed += OnScenePreloadFailed;
-    manager.SceneSwitchFailed += OnSceneSwitchFailed;
-    manager.SceneCached += OnSceneCached;
-    manager.SceneRemovedFromCache += OnSceneRemoved;
-    manager.LoadScreenShown += OnLoadScreenShown;
-    manager.LoadScreenHidden += OnLoadScreenHidden;
+	var manager = (LongSceneManagerCs.LongSceneManagerCs)GetNode("/root/LongSceneManagerCs");
+	
+	// Connect all scene manager signals
+	manager.SceneSwitchStarted += OnSceneSwitchStarted;
+	manager.SceneSwitchCompleted += OnSceneSwitchCompleted;
+	manager.ScenePreloadStarted += OnScenePreloadStarted;
+	manager.ScenePreloadCompleted += OnScenePreloadCompleted;
+	manager.ScenePreloadFailed += OnScenePreloadFailed;
+	manager.SceneSwitchFailed += OnSceneSwitchFailed;
+	manager.SceneCached += OnSceneCached;
+	manager.SceneRemovedFromCache += OnSceneRemoved;
+	manager.LoadScreenShown += OnLoadScreenShown;
+	manager.LoadScreenHidden += OnLoadScreenHidden;
 }
 
 // Scene switch signals
 private void OnSceneSwitchStarted(string fromScene, string toScene)
 {
-    GD.Print($"Scene switch started: {fromScene} -> {toScene}");
+	GD.Print($"Scene switch started: {fromScene} -> {toScene}");
 }
 
 private void OnSceneSwitchCompleted(string scenePath)
 {
-    GD.Print($"Scene switch completed: {scenePath}");
-    // Can update UI, play sound effects here
+	GD.Print($"Scene switch completed: {scenePath}");
+	// Can update UI, play sound effects here
 }
 
 private void OnSceneSwitchFailed(string scenePath)
 {
-    GD.PrintErr($"Scene switch failed: {scenePath}");
-    // Can show error prompt here
+	GD.PrintErr($"Scene switch failed: {scenePath}");
+	// Can show error prompt here
 }
 
 // Preload signals
 private void OnScenePreloadStarted(string scenePath)
 {
-    GD.Print($"Scene preload started: {scenePath}");
+	GD.Print($"Scene preload started: {scenePath}");
 }
 
 private void OnScenePreloadCompleted(string scenePath)
 {
-    GD.Print($"Scene preload completed: {scenePath}");
-    // Can update UI here, prompt player can switch now
+	GD.Print($"Scene preload completed: {scenePath}");
+	// Can update UI here, prompt player can switch now
 }
 
 private void OnScenePreloadFailed(string scenePath)
 {
-    GD.PrintErr($"Scene preload failed: {scenePath}");
+	GD.PrintErr($"Scene preload failed: {scenePath}");
 }
 
 // Cache signals
 private void OnSceneCached(string scenePath)
 {
-    GD.Print($"Scene cached: {scenePath}");
+	GD.Print($"Scene cached: {scenePath}");
 }
 
 private void OnSceneRemoved(string scenePath)
 {
-    GD.Print($"Scene removed from cache: {scenePath}");
+	GD.Print($"Scene removed from cache: {scenePath}");
 }
 
 // Loading screen signals
 private void OnLoadScreenShown(Node loadScreenInstance)
 {
-    GD.Print($"Loading screen shown: {loadScreenInstance.Name}");
+	GD.Print($"Loading screen shown: {loadScreenInstance.Name}");
 }
 
 private void OnLoadScreenHidden(Node loadScreenInstance)
 {
-    GD.Print($"Loading screen hidden: {loadScreenInstance.Name}");
+	GD.Print($"Loading screen hidden: {loadScreenInstance.Name}");
 }
 ```
 

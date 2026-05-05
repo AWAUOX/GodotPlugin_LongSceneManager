@@ -6,6 +6,7 @@ const TEST_SCENE_1_PATH = "res://demo_test_scene_manager/test_scene_1.tscn"
 const TEST_SCENE_3_PATH = "res://demo_test_scene_manager/test_scene_3.tscn"
 const TEST_SCENE_4_PATH = "res://demo_test_scene_manager/test_scene_4.tscn"
 const TEST_SCENE_5_PATH = "res://demo_test_scene_manager/test_scene_5.tscn"
+const CUSTOM_LOADING_SCENE = "res://demo_test_scene_manager/custom_load_screen/custom_load_screen.tscn"
 
 # Button declarations (including new scene4/scene5 switch buttons) 按钮声明（含新增的scene4/scene5切换按钮）
 @onready var button_main: Button = $VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer/Button_Main
@@ -183,7 +184,7 @@ func _on_switch_scene_3_with_preload_pressed():
 
 func _on_switch_scene_3_direct_pressed():
 	print("Direct load scene 3 直接加载场景3")
-	await LongSceneManager.switch_scene(TEST_SCENE_3_PATH, true, "")
+	await LongSceneManager.switch_scene(TEST_SCENE_3_PATH, true, CUSTOM_LOADING_SCENE)
 
 # ============== New scene4 switch functions ============== 新增scene4切换函数 ==============
 func _on_switch_scene_4_with_preload_pressed():
@@ -194,7 +195,7 @@ func _on_switch_scene_4_with_preload_pressed():
 func _on_switch_scene_4_direct_pressed():
 	# Direct load scene 4 (no preload) 直接加载场景4（不预加载）
 	print("Direct load scene 4 直接加载场景4")
-	await LongSceneManager.switch_scene(TEST_SCENE_4_PATH, true, "")
+	await LongSceneManager.switch_scene(TEST_SCENE_4_PATH, true, CUSTOM_LOADING_SCENE)
 
 # ============== New scene5 switch functions ============== 新增scene5切换函数 ==============
 func _on_switch_scene_5_with_preload_pressed():
@@ -205,7 +206,7 @@ func _on_switch_scene_5_with_preload_pressed():
 func _on_switch_scene_5_direct_pressed():
 	# Direct load scene 5 直接加载场景5
 	print("Direct load scene 5 直接加载场景5")
-	await LongSceneManager.switch_scene(TEST_SCENE_5_PATH, true, "")
+	await LongSceneManager.switch_scene(TEST_SCENE_5_PATH, true, CUSTOM_LOADING_SCENE)
 
 func _on_scene_switch_started(from_scene: String, to_scene: String):
 	print("Scene1-switch start 场景2-切换开始: ", from_scene, " -> ", to_scene)

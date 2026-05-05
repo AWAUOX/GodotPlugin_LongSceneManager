@@ -799,9 +799,45 @@ func _switch_to_cached_scene(scene_path: String, load_screen_instance: Node) -> 
 func _load_and_switch(scene_path: String, load_screen_instance: Node, use_cache: bool) -> void:
 	print("[SceneManager] Loading scene: ", scene_path)
 
-	var new_scene_resource = load(scene_path)
+	# Use asynchronous loading to get progress 使用异步加载以获取进度
+	ResourceLoader.load_threaded_request(scene_path, "", false, ResourceLoader.CACHE_MODE_IGNORE)
+	
+	var progress_array = []
+	var status
+	var load_start_time = Time.get_ticks_msec()
+	
+	while true:
+		status = ResourceLoader.load_threaded_get_status(scene_path, progress_array)
+		
+		match status:
+			ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+				var progress = progress_array[0] if progress_array.size() > 0 else 0.0
+				# Update progress bar 更新进度条
+				if load_screen_instance and load_screen_instance.has_method("set_progress"):
+					load_screen_instance.set_progress(progress)
+				elif load_screen_instance and load_screen_instance.has_method("update_progress"):
+					load_screen_instance.update_progress(progress)
+				
+				# Log progress every 500ms 每500毫秒输出一次进度
+				if Time.get_ticks_msec() - load_start_time > 500:
+					print("[SceneManager] Direct load progress: ", progress * 100, "%")
+					load_start_time = Time.get_ticks_msec()
+				
+				await get_tree().process_frame
+			
+			ResourceLoader.THREAD_LOAD_LOADED:
+				print("[SceneManager] Direct load completed: ", scene_path)
+				break
+			
+			ResourceLoader.THREAD_LOAD_FAILED:
+				push_error("[SceneManager] Scene loading failed: ", scene_path)
+				await _hide_load_screen(load_screen_instance)
+				scene_switch_failed.emit(scene_path)
+				return
+	
+	var new_scene_resource = ResourceLoader.load_threaded_get(scene_path)
 	if not new_scene_resource:
-		push_error("[SceneManager] Scene loading failed: ", scene_path)
+		push_error("[SceneManager] Scene resource retrieval failed: ", scene_path)
 		await _hide_load_screen(load_screen_instance)
 		scene_switch_failed.emit(scene_path)
 		return

@@ -1,4 +1,4 @@
-extends Control
+extends CanvasLayer
 
 signal fade_in_started
 signal fade_in_completed
@@ -13,6 +13,10 @@ signal fade_out_completed
 @export var fade_out_ease: Tween.EaseType = Tween.EASE_IN
 @export var fade_out_trans: Tween.TransitionType = Tween.TRANS_QUAD
 
+@onready var fade_in_out: ColorRect = $FadeInOut
+@onready var background_color: ColorRect = $BackgroundColor
+@onready var progress_bar: ProgressBar = $BackgroundColor/MarginContainer/VBoxContainer/ProgressBar
+
 var tween: Tween
 var is_transitioning: bool = false
 
@@ -20,14 +24,20 @@ var _target_scene_path: String = ""
 var _is_switching: bool = false
 
 func _ready():
-	anchors_preset = Control.PRESET_FULL_RECT
-	z_index = 1000
-	mouse_filter = Control.MOUSE_FILTER_STOP
+	layer = 1000
+	follow_viewport_enabled = true
 	
-	modulate.a = 0
-	visible = false
+	# 确保FadeInOut在最上层（z_index高于BackgroundColor）
+	fade_in_out.z_index = 1
+	background_color.z_index = 0
 	
-	var progress_bar = $ColorRect/MarginContainer/VBoxContainer/ProgressBar
+	# 初始化：黑色层覆盖（alpha=1），背景不可见，整个CanvasLayer隐藏
+	fade_in_out.modulate.a = 1.0
+	fade_in_out.visible = true  # 黑色层始终可见（但CanvasLayer隐藏时看不到）
+	background_color.visible = false
+	
+	visible = false  # 整个CanvasLayer初始隐藏
+	
 	if progress_bar:
 		progress_bar.value = 0
 	
@@ -37,11 +47,7 @@ func _ready():
 		LongSceneManager.scene_switch_started.connect(_on_scene_switch_started)
 		LongSceneManager.scene_switch_completed.connect(_on_scene_switch_completed)
 
-func _get_progress_bar() -> ProgressBar:
-	return $ColorRect/MarginContainer/VBoxContainer/ProgressBar
-
 func set_progress(progress: float) -> void:
-	var progress_bar = _get_progress_bar()
 	if progress_bar:
 		progress_bar.value = progress * 100
 
@@ -55,13 +61,17 @@ func fade_in() -> void:
 	is_transitioning = true
 	fade_in_started.emit()
 	
+	# 显示CanvasLayer和背景内容
 	visible = true
-	modulate.a = 0
+	background_color.visible = true
+	
+	# 黑色层从完全不透明淡出到完全透明，露出背景内容
+	fade_in_out.modulate.a = 1.0
 	
 	tween = create_tween()
 	tween.set_ease(fade_in_ease)
 	tween.set_trans(fade_in_trans)
-	tween.tween_property(self, "modulate:a", 1.0, fade_in_duration)
+	tween.tween_property(fade_in_out, "modulate:a", 0.0, fade_in_duration)
 	
 	await tween.finished
 	is_transitioning = false
@@ -74,13 +84,20 @@ func fade_out() -> void:
 	is_transitioning = true
 	fade_out_started.emit()
 	
+	# 黑色层从完全透明淡入到完全不透明，覆盖背景内容
+	fade_in_out.modulate.a = 0.0
+	
 	tween = create_tween()
 	tween.set_ease(fade_out_ease)
 	tween.set_trans(fade_out_trans)
-	tween.tween_property(self, "modulate:a", 0.0, fade_out_duration)
+	tween.tween_property(fade_in_out, "modulate:a", 1.0, fade_out_duration)
 	
 	await tween.finished
+	
+	# 隐藏背景和整个CanvasLayer
+	background_color.visible = false
 	visible = false
+	
 	is_transitioning = false
 	fade_out_completed.emit()
 
@@ -92,13 +109,18 @@ func _stop_current_tween() -> void:
 func set_immediate_visible(visible: bool) -> void:
 	_stop_current_tween()
 	self.visible = visible
-	modulate.a = 1.0 if visible else 0.0
+	if visible:
+		background_color.visible = true
+		fade_in_out.modulate.a = 1.0
+	else:
+		background_color.visible = false
+		fade_in_out.modulate.a = 0.0
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_SIZE_CHANGED:
-		var color_rect = $ColorRect
-		if color_rect:
-			color_rect.size = get_viewport().get_visible_rect().size
+		var size = get_viewport().get_visible_rect().size
+		fade_in_out.size = size
+		background_color.size = size
 
 func _on_scene_switch_started(from_scene: String, to_scene: String) -> void:
 	_target_scene_path = to_scene

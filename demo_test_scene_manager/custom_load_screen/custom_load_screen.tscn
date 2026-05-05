@@ -2,22 +2,20 @@
 
 [ext_resource type="Script" uid="uid://c2kjalwmsya2u" path="res://demo_test_scene_manager/custom_load_screen/custom_load_screen.gd" id="1_sk51e"]
 
-[node name="CustomLoadScreen" type="Control" unique_id=404426476]
-layout_mode = 3
+[node name="CustomLoadScreen" type="CanvasLayer" unique_id=2063854737]
+script = ExtResource("1_sk51e")
+
+[node name="FadeInOut" type="ColorRect" parent="." unique_id=111111111]
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_sk51e")
-fade_in_duration = null
-fade_out_duration = null
-fade_in_ease = null
-fade_in_trans = null
-fade_out_ease = null
-fade_out_trans = null
+color = Color(0, 0, 0, 1)
+mouse_filter = 2
 
-[node name="ColorRect" type="ColorRect" parent="." unique_id=808109872]
+[node name="BackgroundColor" type="ColorRect" parent="." unique_id=222222222]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -25,8 +23,9 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.3530592, 0.55363184, 0.48112154, 1)
+mouse_filter = 0
 
-[node name="MarginContainer" type="MarginContainer" parent="ColorRect" unique_id=988031580]
+[node name="MarginContainer" type="MarginContainer" parent="BackgroundColor" unique_id=988031580]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -38,25 +37,25 @@ theme_override_constants/margin_top = 30
 theme_override_constants/margin_right = 30
 theme_override_constants/margin_bottom = 30
 
-[node name="VBoxContainer" type="VBoxContainer" parent="ColorRect/MarginContainer" unique_id=1307583491]
+[node name="VBoxContainer" type="VBoxContainer" parent="BackgroundColor/MarginContainer" unique_id=1307583491]
 layout_mode = 2
 
-[node name="Control" type="Control" parent="ColorRect/MarginContainer/VBoxContainer" unique_id=505319847]
+[node name="Control" type="Control" parent="BackgroundColor/MarginContainer/VBoxContainer" unique_id=505319847]
 custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 
-[node name="Label" type="Label" parent="ColorRect/MarginContainer/VBoxContainer" unique_id=2029680359]
+[node name="Label" type="Label" parent="BackgroundColor/MarginContainer/VBoxContainer" unique_id=2029680359]
 layout_mode = 2
 theme_override_font_sizes/font_size = 64
 text = "loading"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Control2" type="Control" parent="ColorRect/MarginContainer/VBoxContainer" unique_id=30974255]
+[node name="Control2" type="Control" parent="BackgroundColor/MarginContainer/VBoxContainer" unique_id=30974255]
 custom_minimum_size = Vector2(0, 200)
 layout_mode = 2
 
-[node name="ProgressBar" type="ProgressBar" parent="ColorRect/MarginContainer/VBoxContainer" unique_id=56061915]
+[node name="ProgressBar" type="ProgressBar" parent="BackgroundColor/MarginContainer/VBoxContainer" unique_id=56061915]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 size_flags_vertical = 4

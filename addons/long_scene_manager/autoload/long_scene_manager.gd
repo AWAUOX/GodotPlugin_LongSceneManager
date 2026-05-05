@@ -771,11 +771,18 @@ func _get_load_screen_instance(load_screen_path: String) -> Node:
 		if ResourceLoader.exists(load_screen_path):
 			var scene = load(load_screen_path)
 			if scene:
-				return scene.instantiate()
+				var custom_screen = scene.instantiate()
+				add_child(custom_screen)
+				if custom_screen is CanvasItem:
+					custom_screen.visible = false
+				elif custom_screen.has_method("set_visible"):
+					custom_screen.set_visible(false)
+				return custom_screen
 		return default_load_screen
 
 func _show_load_screen(load_screen_instance: Node) -> void:
 	if not load_screen_instance:
+		print("[SceneManager] No loading screen, switching directly")
 		return
 
 	active_load_screen = load_screen_instance
@@ -787,13 +794,25 @@ func _show_load_screen(load_screen_instance: Node) -> void:
 	elif load_screen_instance.has_method("set_visible"):
 		load_screen_instance.set_visible(true)
 
+	if load_screen_instance.has_method("fade_in"):
+		print("[SceneManager] Calling loading screen fade-in effect")
+		await load_screen_instance.fade_in()
+	elif load_screen_instance.has_method("show_loading"):
+		await load_screen_instance.show_loading()
+
 	load_screen_shown.emit(load_screen_instance)
+	print("[SceneManager] Loading screen display completed")
 
 func _hide_load_screen(load_screen_instance: Node) -> void:
 	if not load_screen_instance:
 		return
 
-	if load_screen_instance is CanvasItem:
+	if load_screen_instance.has_method("fade_out"):
+		print("[SceneManager] Calling loading screen fade-out effect")
+		await load_screen_instance.fade_out()
+	elif load_screen_instance.has_method("hide_loading"):
+		await load_screen_instance.hide_loading()
+	elif load_screen_instance is CanvasItem:
 		load_screen_instance.visible = false
 	elif load_screen_instance.has_method("hide"):
 		load_screen_instance.hide()
@@ -803,11 +822,16 @@ func _hide_load_screen(load_screen_instance: Node) -> void:
 	active_load_screen = null
 	load_screen_hidden.emit(load_screen_instance)
 
+	if load_screen_instance != default_load_screen and load_screen_instance.get_parent() == self:
+		remove_child(load_screen_instance)
+		load_screen_instance.queue_free()
+		print("[SceneManager] Cleaning up custom loading screen")
+
 # ==================== Private Functions - Scene Loading ====================
 # ==================== 私有函数 - 场景加载 ====================
 
 func _load_scene_by_method(scene_path: String, load_method: LoadMethod, cache_current_scene: bool, load_screen_instance: Node) -> void:
-	_show_load_screen(load_screen_instance)
+	await _show_load_screen(load_screen_instance)
 
 	match load_method:
 		LoadMethod.DIRECT, 0:

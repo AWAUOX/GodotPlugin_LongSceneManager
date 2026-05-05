@@ -34,9 +34,9 @@ const CUSTOM_LOADING_SCENE = "res://demo_test_scene_manager/custom_load_screen/c
 
 
 @onready var label_info: Label = $VBoxContainer/HBoxContainer/VBoxContainer2/Label_Info
-@onready var progress_bar_preload_scene_3: ProgressBar = $VBoxContainer/VBoxContainer/scene3/ProgressBar_PreloadScene3
-@onready var progress_bar_preload_scene_4: ProgressBar = $VBoxContainer/VBoxContainer/scene4/ProgressBar_PreloadScene4
-@onready var progress_bar_preload_scene_5: ProgressBar = $VBoxContainer/VBoxContainer/scene5/ProgressBar_PreloadScene5
+@onready var progress_bar_preload_scene_3: ProgressBar = $VBoxContainer/MarginContainer/VBoxContainer/scene3/ProgressBar_PreloadScene3
+@onready var progress_bar_preload_scene_4: ProgressBar = $VBoxContainer/MarginContainer/VBoxContainer/scene4/ProgressBar_PreloadScene4
+@onready var progress_bar_preload_scene_5: ProgressBar = $VBoxContainer/MarginContainer/VBoxContainer/scene5/ProgressBar_PreloadScene5
 
 var is_first_enter:bool = true
 
@@ -152,11 +152,11 @@ Resource List:
 # Original switch functions 原有切换函数
 func _on_main_pressed():
 	print("Switch back to main scene 切换回主场景")
-	await LongSceneManager.switch_scene(MAIN_SCENE_PATH, true, "")
+	await LongSceneManager.switch_scene(MAIN_SCENE_PATH, LongSceneManager.LoadMethod.BOTH_PRELOAD_FIRST, true, "")
 
 func _on_scene1_pressed():
 	print("Switch to scene 1 切换到场景1")
-	await LongSceneManager.switch_scene(TEST_SCENE_1_PATH, true, "")
+	await LongSceneManager.switch_scene(TEST_SCENE_1_PATH, LongSceneManager.LoadMethod.BOTH_PRELOAD_FIRST, true, "")
 
 # Preload functions (original) 预加载函数（原有）
 func _on_preload_scene_3_pressed():
@@ -180,33 +180,33 @@ func _on_preload_scene_5_pressed():
 # scene3 switch functions (original) scene3切换函数（原有）
 func _on_switch_scene_3_with_preload_pressed():
 	print("Switch scene 3 with preload 使用预加载切换场景3")
-	await LongSceneManager.switch_scene(TEST_SCENE_3_PATH, true, "")
+	await LongSceneManager.switch_scene(TEST_SCENE_3_PATH, LongSceneManager.LoadMethod.BOTH_PRELOAD_FIRST, true, "")
 
 func _on_switch_scene_3_direct_pressed():
 	print("Direct load scene 3 直接加载场景3")
-	await LongSceneManager.switch_scene(TEST_SCENE_3_PATH, true, CUSTOM_LOADING_SCENE)
+	await LongSceneManager.switch_scene(TEST_SCENE_3_PATH, LongSceneManager.LoadMethod.DIRECT, true, CUSTOM_LOADING_SCENE)
 
 # ============== New scene4 switch functions ============== 新增scene4切换函数 ==============
 func _on_switch_scene_4_with_preload_pressed():
 	# Switch scene 4 with preload (same logic as scene3) 使用预加载切换场景4（和scene3逻辑完全一致）
 	print("Switch scene 4 with preload 使用预加载切换场景4")
-	await LongSceneManager.switch_scene(TEST_SCENE_4_PATH, true, "")
+	await LongSceneManager.switch_scene(TEST_SCENE_4_PATH, LongSceneManager.LoadMethod.BOTH_PRELOAD_FIRST, true, "")
 
 func _on_switch_scene_4_direct_pressed():
 	# Direct load scene 4 (no preload) 直接加载场景4（不预加载）
 	print("Direct load scene 4 直接加载场景4")
-	await LongSceneManager.switch_scene(TEST_SCENE_4_PATH, true, CUSTOM_LOADING_SCENE)
+	await LongSceneManager.switch_scene(TEST_SCENE_4_PATH, LongSceneManager.LoadMethod.DIRECT, true, CUSTOM_LOADING_SCENE)
 
 # ============== New scene5 switch functions ============== 新增scene5切换函数 ==============
 func _on_switch_scene_5_with_preload_pressed():
 	# Switch scene 5 with preload 使用预加载切换场景5
 	print("Switch scene 5 with preload 使用预加载切换场景5")
-	await LongSceneManager.switch_scene(TEST_SCENE_5_PATH, true, "")
+	await LongSceneManager.switch_scene(TEST_SCENE_5_PATH, LongSceneManager.LoadMethod.BOTH_PRELOAD_FIRST, true, "")
 
 func _on_switch_scene_5_direct_pressed():
 	# Direct load scene 5 直接加载场景5
 	print("Direct load scene 5 直接加载场景5")
-	await LongSceneManager.switch_scene(TEST_SCENE_5_PATH, true, CUSTOM_LOADING_SCENE)
+	await LongSceneManager.switch_scene(TEST_SCENE_5_PATH, LongSceneManager.LoadMethod.DIRECT, true, CUSTOM_LOADING_SCENE)
 
 func _on_scene_switch_started(from_scene: String, to_scene: String):
 	print("Scene1-switch start 场景2-切换开始: ", from_scene, " -> ", to_scene)
@@ -244,3 +244,15 @@ func _on_remove_cached_scene_5_pressed():
 	print("remove instate scene5 移除实例化缓存场景5")
 	LongSceneManager.remove_cached_scene(TEST_SCENE_5_PATH)
 	_update_info()
+
+
+func _on_preload_all_pressed() -> void:
+	pass # Replace with function body.
+
+
+func _on_cancel_all_preload_pressed() -> void:
+	pass # Replace with function body.
+
+
+func _on_cancel_preload_scene_3_pressed() -> void:
+	pass # Replace with function body.

@@ -85,12 +85,12 @@ Resource List:
 func _on_scene1_pressed():
 	##"Switch to scene 1 (using default loading screen) 切换到场景1（使用默认加载屏幕）"""
 	print("Switch to scene 1 切换到场景1")
-	await LongSceneManager.switch_scene(TEST_SCENE_1_PATH, true, "")
+	await LongSceneManager.switch_scene(TEST_SCENE_1_PATH,LongSceneManager.LoadMethod.PRELOAD_CACHE, true, "")
 
 func _on_scene2_pressed():
 	##"Switch to scene 2 (using default loading screen) 切换到场景2（使用默认加载屏幕）"""
 	print("Switch to scene 2 切换到场景2")
-	await LongSceneManager.switch_scene(TEST_SCENE_2_PATH, true, "")
+	await LongSceneManager.switch_scene(TEST_SCENE_2_PATH,LongSceneManager.LoadMethod.PRELOAD_CACHE, true, "")
 
 func _on_preload1_pressed():
 	##"Preload scene 1 预加载场景1"""

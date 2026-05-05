@@ -16,6 +16,14 @@ enum LoadState {
 	LOADED          # Loaded (resource loaded but not instantiated). 已加载（资源已加载但未实例化）
 }
 
+enum LoadMethod {
+	DIRECT,              # Direct load, no cache lookup. 直接加载，不查找缓存
+	PRELOAD_CACHE,       # Only check preload resource cache. 只查找预加载资源缓存
+	SCENE_CACHE,         # Only check scene instance cache. 只查找场景实例化缓存
+	BOTH_PRELOAD_FIRST,  # Check both caches, prioritize preload cache (default). 查找两个缓存，优先预加载缓存
+	BOTH_INSTANCE_FIRST  # Check both caches, prioritize instance cache. 查找两个缓存，优先实例化缓存
+}
+
 # ==================== Signal Definitions ====================
 # ==================== 信号定义 ====================
 
@@ -188,7 +196,7 @@ func _create_simple_load_screen() -> Node:
 # ==================== 公开API - 场景切换 ====================
 
 # Switch to target scene with optional cache and load screen. 切换到目标场景，可选择使用缓存和加载屏幕。
-func switch_scene(new_scene_path: String, use_cache: bool = true, load_screen_path: String = "") -> void:
+func switch_scene(new_scene_path: String, load_method: LoadMethod = LoadMethod.BOTH_PRELOAD_FIRST, cache_current_scene: bool = true, load_screen_path: String = "") -> void:
 	if _is_switching:
 		push_warning("[SceneManager] Warning: Scene switch already in progress, ignoring request to: ", new_scene_path)
 		return
@@ -223,18 +231,7 @@ func switch_scene(new_scene_path: String, use_cache: bool = true, load_screen_pa
 		scene_switch_failed.emit(new_scene_path)
 		return
 	
-	if preload_resource_cache.has(new_scene_path):
-		print("[SceneManager] Using preload resource cache: ", new_scene_path)
-		await _handle_preloaded_resource(new_scene_path, load_screen_to_use, use_cache)
-	elif _preload_states.has(new_scene_path) and _preload_states[new_scene_path]["state"] == LoadState.LOADING:
-		print("[SceneManager] Scene is preloading, waiting for completion...")
-		await _handle_preloading_scene(new_scene_path, load_screen_to_use, use_cache)
-	elif use_cache and scene_cache.has(new_scene_path):
-		print("[SceneManager] Loading scene from instance cache: ", new_scene_path)
-		await _handle_cached_scene(new_scene_path, load_screen_to_use)
-	else:
-		print("[SceneManager] Directly loading scene: ", new_scene_path)
-		await _handle_direct_load(new_scene_path, load_screen_to_use, use_cache)
+	await _load_scene_by_method(new_scene_path, load_method, cache_current_scene, load_screen_to_use)
 	
 	_is_switching = false
 
@@ -600,6 +597,62 @@ func _hide_load_screen(load_screen_instance: Node) -> void:
 	load_screen_hidden.emit(load_screen_instance)
 	print("[SceneManager] Loading screen hiding completed")
 
+func _load_scene_by_method(scene_path: String, load_method: LoadMethod, cache_current_scene: bool, load_screen_instance: Node) -> void:
+	match load_method:
+		LoadMethod.DIRECT:
+			print("[SceneManager] Load method: DIRECT")
+			await _handle_direct_load(scene_path, load_screen_instance, cache_current_scene)
+		LoadMethod.PRELOAD_CACHE:
+			print("[SceneManager] Load method: PRELOAD_CACHE")
+			if preload_resource_cache.has(scene_path):
+				print("[SceneManager] Using preload resource cache: ", scene_path)
+				await _handle_preloaded_resource(scene_path, load_screen_instance, cache_current_scene)
+			elif _preload_states.has(scene_path) and _preload_states[scene_path]["state"] == LoadState.LOADING:
+				print("[SceneManager] Scene is preloading, waiting for completion...")
+				await _handle_preloading_scene(scene_path, load_screen_instance, cache_current_scene)
+			else:
+				print("[SceneManager] Preload cache miss, loading directly: ", scene_path)
+				await _handle_direct_load(scene_path, load_screen_instance, cache_current_scene)
+		LoadMethod.SCENE_CACHE:
+			print("[SceneManager] Load method: SCENE_CACHE")
+			if scene_cache.has(scene_path):
+				print("[SceneManager] Loading scene from instance cache: ", scene_path)
+				await _handle_cached_scene(scene_path, load_screen_instance, cache_current_scene)
+			else:
+				print("[SceneManager] Instance cache miss, loading directly: ", scene_path)
+				await _handle_direct_load(scene_path, load_screen_instance, cache_current_scene)
+		LoadMethod.BOTH_PRELOAD_FIRST:
+			print("[SceneManager] Load method: BOTH_PRELOAD_FIRST")
+			if preload_resource_cache.has(scene_path):
+				print("[SceneManager] Using preload resource cache: ", scene_path)
+				await _handle_preloaded_resource(scene_path, load_screen_instance, cache_current_scene)
+			elif _preload_states.has(scene_path) and _preload_states[scene_path]["state"] == LoadState.LOADING:
+				print("[SceneManager] Scene is preloading, waiting for completion...")
+				await _handle_preloading_scene(scene_path, load_screen_instance, cache_current_scene)
+			elif scene_cache.has(scene_path):
+				print("[SceneManager] Loading scene from instance cache: ", scene_path)
+				await _handle_cached_scene(scene_path, load_screen_instance, cache_current_scene)
+			else:
+				print("[SceneManager] All caches miss, loading directly: ", scene_path)
+				await _handle_direct_load(scene_path, load_screen_instance, cache_current_scene)
+		LoadMethod.BOTH_INSTANCE_FIRST:
+			print("[SceneManager] Load method: BOTH_INSTANCE_FIRST")
+			if scene_cache.has(scene_path):
+				print("[SceneManager] Loading scene from instance cache: ", scene_path)
+				await _handle_cached_scene(scene_path, load_screen_instance, cache_current_scene)
+			elif preload_resource_cache.has(scene_path):
+				print("[SceneManager] Using preload resource cache: ", scene_path)
+				await _handle_preloaded_resource(scene_path, load_screen_instance, cache_current_scene)
+			elif _preload_states.has(scene_path) and _preload_states[scene_path]["state"] == LoadState.LOADING:
+				print("[SceneManager] Scene is preloading, waiting for completion...")
+				await _handle_preloading_scene(scene_path, load_screen_instance, cache_current_scene)
+			else:
+				print("[SceneManager] All caches miss, loading directly: ", scene_path)
+				await _handle_direct_load(scene_path, load_screen_instance, cache_current_scene)
+		_:
+			push_error("[SceneManager] Error: Unknown load method")
+			scene_switch_failed.emit(scene_path)
+
 # ==================== Scene Switch Handlers ====================
 # ==================== 场景切换处理函数 ====================
 
@@ -666,9 +719,9 @@ func _handle_preloading_scene(scene_path: String, load_screen_instance: Node, us
 	await _instantiate_and_switch(scene_path, load_screen_instance, use_cache)
 
 # Handle switch using cached scene instance. 处理使用缓存场景实例的切换。
-func _handle_cached_scene(scene_path: String, load_screen_instance: Node) -> void:
+func _handle_cached_scene(scene_path: String, load_screen_instance: Node, cache_current_scene: bool) -> void:
 	await _show_load_screen(load_screen_instance)
-	await _switch_to_cached_scene(scene_path, load_screen_instance)
+	await _switch_to_cached_scene(scene_path, load_screen_instance, cache_current_scene)
 
 # Handle direct scene load without cache. 处理不通过缓存的直接场景加载。
 func _handle_direct_load(scene_path: String, load_screen_instance: Node, use_cache: bool) -> void:
@@ -765,7 +818,7 @@ func _instantiate_and_switch(scene_path: String, load_screen_instance: Node, use
 # ==================== 加载和切换核心函数 ====================
 
 # Switch to scene from instance cache. 从实例缓存切换到场景。
-func _switch_to_cached_scene(scene_path: String, load_screen_instance: Node) -> void:
+func _switch_to_cached_scene(scene_path: String, load_screen_instance: Node, cache_current_scene: bool) -> void:
 	if not scene_cache.has(scene_path):
 		push_error("[SceneManager] Scene not found in cache: ", scene_path)
 		await _hide_load_screen(load_screen_instance)
@@ -793,10 +846,10 @@ func _switch_to_cached_scene(scene_path: String, load_screen_instance: Node) -> 
 	if scene_instance.is_inside_tree():
 		scene_instance.get_parent().remove_child(scene_instance)
 	
-	await _perform_scene_switch(scene_instance, scene_path, load_screen_instance, true)
+	await _perform_scene_switch(scene_instance, scene_path, load_screen_instance, cache_current_scene)
 
 # Load scene resource and perform switch. 加载场景资源并执行切换。
-func _load_and_switch(scene_path: String, load_screen_instance: Node, use_cache: bool) -> void:
+func _load_and_switch(scene_path: String, load_screen_instance: Node, current_scene_use_cache: bool) -> void:
 	print("[SceneManager] Loading scene: ", scene_path)
 
 	# Use asynchronous loading to get progress 使用异步加载以获取进度
@@ -849,10 +902,10 @@ func _load_and_switch(scene_path: String, load_screen_instance: Node, use_cache:
 		scene_switch_failed.emit(scene_path)
 		return
 
-	await _perform_scene_switch(new_scene, scene_path, load_screen_instance, use_cache)
+	await _perform_scene_switch(new_scene, scene_path, load_screen_instance, current_scene_use_cache)
 
 # Core function to swap old scene with new scene. 核心函数：用新场景替换旧场景。
-func _perform_scene_switch(new_scene: Node, new_scene_path: String, load_screen_instance: Node, use_cache: bool) -> void:
+func _perform_scene_switch(new_scene: Node, new_scene_path: String, load_screen_instance: Node, current_scene_use_cache: bool) -> void:
 	print("[SceneManager] Performing scene switch to: ", new_scene_path)
 
 	var old_scene = current_scene
@@ -875,7 +928,7 @@ func _perform_scene_switch(new_scene: Node, new_scene_path: String, load_screen_
 			old_scene.queue_free()
 			_reset_scene_as_resource(old_scene_path)
 			_scenes_to_reset.erase(old_scene_path)
-		elif use_cache and old_scene_path != "" and old_scene_path != new_scene_path:
+		elif current_scene_use_cache and old_scene_path != "" and old_scene_path != new_scene_path:
 			_add_to_cache(old_scene_path, old_scene)
 		else:
 			_cleanup_orphaned_nodes(old_scene)

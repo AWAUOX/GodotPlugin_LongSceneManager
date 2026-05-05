@@ -29,14 +29,6 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 20
 
-[node name="Label" type="Label" parent="VBoxContainer" unique_id=540729030]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 64
-text = "scene2"
-horizontal_alignment = 1
-vertical_alignment = 1
-
 [node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer" unique_id=660705289]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -192,11 +184,42 @@ size_flags_horizontal = 3
 text = "RemoveScene5Instance"
 autowrap_mode = 3
 
+[node name="OtherTest" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer" unique_id=312652061]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+
+[node name="PreloadAll" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/OtherTest" unique_id=493923472]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "preload all"
+
+[node name="CancelAllPreload" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/OtherTest" unique_id=1999089946]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "cancel all preload"
+
+[node name="CancelPreloadScene3" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/OtherTest" unique_id=123397531]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Cancel Preload Scene3"
+
+[node name="Button4" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/OtherTest" unique_id=1197530503]
+layout_mode = 2
+size_flags_horizontal = 3
+
 [node name="VBoxContainer2" type="VBoxContainer" parent="VBoxContainer/HBoxContainer" unique_id=744612951]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
 alignment = 1
+
+[node name="Label" type="Label" parent="VBoxContainer/HBoxContainer/VBoxContainer2" unique_id=540729030]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 32
+text = "scene2"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="Label_Info" type="Label" parent="VBoxContainer/HBoxContainer/VBoxContainer2" unique_id=500112910]
 custom_minimum_size = Vector2(200, 200)
@@ -207,53 +230,58 @@ horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3
 
-[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer" unique_id=1614256736]
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer" unique_id=386713605]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_right = 20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/MarginContainer" unique_id=1614256736]
 layout_mode = 2
 size_flags_vertical = 8
 alignment = 1
 
-[node name="scene3" type="HBoxContainer" parent="VBoxContainer/VBoxContainer" unique_id=1061363954]
+[node name="scene3" type="HBoxContainer" parent="VBoxContainer/MarginContainer/VBoxContainer" unique_id=1061363954]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="Label" type="Label" parent="VBoxContainer/VBoxContainer/scene3" unique_id=1680407171]
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/VBoxContainer/scene3" unique_id=1680407171]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 text = "Perload Scene 3"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="ProgressBar_PreloadScene3" type="ProgressBar" parent="VBoxContainer/VBoxContainer/scene3" unique_id=1265019544]
+[node name="ProgressBar_PreloadScene3" type="ProgressBar" parent="VBoxContainer/MarginContainer/VBoxContainer/scene3" unique_id=1265019544]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="scene4" type="HBoxContainer" parent="VBoxContainer/VBoxContainer" unique_id=1307236740]
+[node name="scene4" type="HBoxContainer" parent="VBoxContainer/MarginContainer/VBoxContainer" unique_id=1307236740]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="Label" type="Label" parent="VBoxContainer/VBoxContainer/scene4" unique_id=771845838]
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/VBoxContainer/scene4" unique_id=771845838]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 text = "Perload Scene 4"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="ProgressBar_PreloadScene4" type="ProgressBar" parent="VBoxContainer/VBoxContainer/scene4" unique_id=425864710]
+[node name="ProgressBar_PreloadScene4" type="ProgressBar" parent="VBoxContainer/MarginContainer/VBoxContainer/scene4" unique_id=425864710]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="scene5" type="HBoxContainer" parent="VBoxContainer/VBoxContainer" unique_id=184404211]
+[node name="scene5" type="HBoxContainer" parent="VBoxContainer/MarginContainer/VBoxContainer" unique_id=184404211]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="Label" type="Label" parent="VBoxContainer/VBoxContainer/scene5" unique_id=1960016238]
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/VBoxContainer/scene5" unique_id=1960016238]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 text = "Perload Scene 5"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="ProgressBar_PreloadScene5" type="ProgressBar" parent="VBoxContainer/VBoxContainer/scene5" unique_id=1994824403]
+[node name="ProgressBar_PreloadScene5" type="ProgressBar" parent="VBoxContainer/MarginContainer/VBoxContainer/scene5" unique_id=1994824403]
 layout_mode = 2
 size_flags_horizontal = 3
 
@@ -263,3 +291,6 @@ layout_mode = 2
 
 [connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer/Button_Main" to="." method="_on_button_main_pressed"]
 [connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer/Button_Scene1" to="." method="_on_button_scene_1_pressed"]
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/OtherTest/PreloadAll" to="." method="_on_preload_all_pressed"]
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/OtherTest/CancelAllPreload" to="." method="_on_cancel_all_preload_pressed"]
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/OtherTest/CancelPreloadScene3" to="." method="_on_cancel_preload_scene_3_pressed"]

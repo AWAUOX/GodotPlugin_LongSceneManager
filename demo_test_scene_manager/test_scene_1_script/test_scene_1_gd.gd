@@ -78,17 +78,17 @@ Resource List:
 func _on_main_pressed():
 	#"""Switch back to main scene 切换回主场景"""
 	print("Switch back to main scene 切换回主场景")
-	await LongSceneManager.switch_scene(MAIN_SCENE_PATH, true, "")
+	await LongSceneManager.switch_scene(MAIN_SCENE_PATH, LongSceneManager.LoadMethod.BOTH_PRELOAD_FIRST, true, "")
 
 func _on_scene2_pressed():
 	#"""Switch to scene 2 切换到场景2"""
 	print("Switch to scene 2 切换到场景2")
-	await LongSceneManager.switch_scene(TEST_SCENE_2_PATH, true, "")
+	await LongSceneManager.switch_scene(TEST_SCENE_2_PATH, LongSceneManager.LoadMethod.BOTH_PRELOAD_FIRST, true, "")
 
 func _on_back_pressed():
 	#"""Back button (special test: no transition effect) 返回按钮（特殊测试：无过渡效果）"""
 	print("Back to main scene (no transition) 返回主场景（无过渡效果）")
-	await LongSceneManager.switch_scene(MAIN_SCENE_PATH, true, "no_transition")
+	await LongSceneManager.switch_scene(MAIN_SCENE_PATH, LongSceneManager.LoadMethod.BOTH_PRELOAD_FIRST, true, "no_transition")
 
 func _on_scene_switch_started(from_scene: String, to_scene: String):
 	print("Scene 1 - switch started 场景1 - 切换开始: ", from_scene, " -> ", to_scene)

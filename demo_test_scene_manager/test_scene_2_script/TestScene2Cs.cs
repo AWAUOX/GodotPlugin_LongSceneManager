@@ -37,10 +37,10 @@ public partial class TestScene2Cs : Control
 
 	public override void _Ready()
 	{
-		GD.Print("=== Test Scene 2 Loaded (C#) ===");
+		GD.Print("=== Test Scene 2 Loaded (C#) 测试场景2加载完成 (C#) ===");
 		SetProcess(false);
 
-		// 获取节点引用
+		// Get node references 获取节点引用
 		buttonMain = GetNode<Button>("VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer/Button_Main");
 		buttonScene1 = GetNode<Button>("VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer/Button_Scene1");
 		buttonPreloadScene3 = GetNode<Button>("VBoxContainer/HBoxContainer/VBoxContainer/scene3/Button_PreloadScene3");
@@ -64,7 +64,7 @@ public partial class TestScene2Cs : Control
 		progressBarPreloadScene4 = GetNode<ProgressBar>("VBoxContainer/VBoxContainer/scene4/ProgressBar_PreloadScene4");
 		progressBarPreloadScene5 = GetNode<ProgressBar>("VBoxContainer/VBoxContainer/scene5/ProgressBar_PreloadScene5");
 
-		// 连接所有按钮信号
+		// Connect all button signals 连接所有按钮信号
 		buttonMain.Pressed += OnMainPressed;
 		buttonScene1.Pressed += OnScene1Pressed;
 		buttonPreloadScene3.Pressed += OnPreloadScene3Pressed;
@@ -86,7 +86,7 @@ public partial class TestScene2Cs : Control
 		isFirstEnter = false;
 		UpdateInfo();
 
-		// 连接SceneManager信号
+		// Connect SceneManager signals 连接SceneManager信号
 		var manager = (LongSceneManagerCs.LongSceneManagerCs)GetNode("/root/LongSceneManagerCs");
 		manager.SceneSwitchStarted += OnSceneSwitchStarted;
 		manager.SceneSwitchCompleted += OnSceneSwitchCompleted;
@@ -107,12 +107,12 @@ public partial class TestScene2Cs : Control
 
 		var manager = (LongSceneManagerCs.LongSceneManagerCs)GetNode("/root/LongSceneManagerCs");
 
-		// 更新三个场景的预加载进度
+		// Update preload progress for three scenes 更新三个场景的预加载进度
 		float scene3Progress = manager.GetLoadingProgress(TEST_SCENE_3_PATH);
 		float scene4Progress = manager.GetLoadingProgress(TEST_SCENE_4_PATH);
 		float scene5Progress = manager.GetLoadingProgress(TEST_SCENE_5_PATH);
 
-		// 场景3进度
+		// Scene 3 progress 场景3进度
 		if (scene3Progress > 0 && scene3Progress < 1.0f)
 		{
 			progressBarPreloadScene3.Value = scene3Progress * 100;
@@ -126,7 +126,7 @@ public partial class TestScene2Cs : Control
 			progressBarPreloadScene3.Value = 0;
 		}
 
-		// 场景4进度
+		// Scene 4 progress 场景4进度
 		if (scene4Progress > 0 && scene4Progress < 1.0f)
 		{
 			progressBarPreloadScene4.Value = scene4Progress * 100;
@@ -140,7 +140,7 @@ public partial class TestScene2Cs : Control
 			progressBarPreloadScene4.Value = 0;
 		}
 
-		// 场景5进度
+		// Scene 5 progress 场景5进度
 		if (scene5Progress > 0 && scene5Progress < 1.0f)
 		{
 			progressBarPreloadScene5.Value = scene5Progress * 100;
@@ -164,11 +164,11 @@ public partial class TestScene2Cs : Control
 		progressBarPreloadScene4.Value = 0;
 		progressBarPreloadScene5.Value = 0;
 
-		// 获取嵌套字典
+		// Get nested dictionaries 获取嵌套字典
 		var instanceCache = (Godot.Collections.Dictionary)cacheInfo["instance_cache"];
 		var preloadCache = (Godot.Collections.Dictionary)cacheInfo["preload_cache"];
 
-		// 处理实例化场景缓存列表
+		// Process instance scene cache list 处理实例化场景缓存列表
 		var cachedScenes = (Godot.Collections.Array<Godot.Collections.Dictionary>)instanceCache["scenes"];
 		var instancePaths = new System.Collections.Generic.List<string>();
 		foreach (var s in cachedScenes)
@@ -177,7 +177,7 @@ public partial class TestScene2Cs : Control
 		}
 		var instanceList = instancePaths.Count > 0 ? string.Join("\n", instancePaths) : "（empty）";
 
-		// 处理预加载资源缓存列表
+		// Process preload resource cache list 处理预加载资源缓存列表
 		var preloadPaths = (Godot.Collections.Array<string>)preloadCache["scenes"];
 		var preloadList = preloadPaths.Count > 0 ? string.Join("\n", preloadPaths) : "（empty）";
 
@@ -203,25 +203,25 @@ Resource List:
 			preloadList);
 	}
 
-	// 原有切换函数
+	// Original switch functions 原有切换函数
 	private void OnMainPressed()
 	{
-		GD.Print("切换回主场景 (C#)");
+		GD.Print("Switch back to main scene (C#) 切换回主场景 (C#)");
 		var manager = (LongSceneManagerCs.LongSceneManagerCs)GetNode("/root/LongSceneManagerCs");
 		manager.SwitchSceneGD(MAIN_SCENE_PATH, true, "");
 	}
 
 	private void OnScene1Pressed()
 	{
-		GD.Print("切换到场景1 (C#)");
+		GD.Print("Switch to scene 1 (C#) 切换到场景1 (C#)");
 		var manager = (LongSceneManagerCs.LongSceneManagerCs)GetNode("/root/LongSceneManagerCs");
 		manager.SwitchSceneGD(TEST_SCENE_1_PATH, true, "");
 	}
 
-	// 预加载函数
+	// Preload functions 预加载函数
 	private void OnPreloadScene3Pressed()
 	{
-		GD.Print("预加载场景3 (C#)");
+		GD.Print("Preload scene 3 (C#) 预加载场景3 (C#)");
 		SetProcess(true);
 		var manager = (LongSceneManagerCs.LongSceneManagerCs)GetNode("/root/LongSceneManagerCs");
 		manager.PreloadSceneGD(TEST_SCENE_3_PATH);
@@ -230,7 +230,7 @@ Resource List:
 
 	private void OnPreloadScene4Pressed()
 	{
-		GD.Print("预加载场景4 (C#)");
+		GD.Print("Preload scene 4 (C#) 预加载场景4 (C#)");
 		SetProcess(true);
 		var manager = (LongSceneManagerCs.LongSceneManagerCs)GetNode("/root/LongSceneManagerCs");
 		manager.PreloadSceneGD(TEST_SCENE_4_PATH);
@@ -239,72 +239,72 @@ Resource List:
 
 	private void OnPreloadScene5Pressed()
 	{
-		GD.Print("预加载场景5 (C#)");
+		GD.Print("Preload scene 5 (C#) 预加载场景5 (C#)");
 		SetProcess(true);
 		var manager = (LongSceneManagerCs.LongSceneManagerCs)GetNode("/root/LongSceneManagerCs");
 		manager.PreloadSceneGD(TEST_SCENE_5_PATH);
 		UpdateInfo();
 	}
 
-	// scene3切换函数
+	// scene3 switch functions scene3切换函数
 	private void OnSwitchScene3WithPreloadPressed()
 	{
-		GD.Print("使用预加载切换场景3 (C#)");
+		GD.Print("Switch scene 3 with preload (C#) 使用预加载切换场景3 (C#)");
 		var manager = (LongSceneManagerCs.LongSceneManagerCs)GetNode("/root/LongSceneManagerCs");
 		manager.SwitchSceneGD(TEST_SCENE_3_PATH, true, "");
 	}
 
 	private void OnSwitchScene3DirectPressed()
 	{
-		GD.Print("直接加载场景3 (C#)");
+		GD.Print("Direct load scene 3 (C#) 直接加载场景3 (C#)");
 		var manager = (LongSceneManagerCs.LongSceneManagerCs)GetNode("/root/LongSceneManagerCs");
 		manager.SwitchSceneGD(TEST_SCENE_3_PATH, true, "");
 	}
 
-	// scene4切换函数
+	// scene4 switch functions scene4切换函数
 	private void OnSwitchScene4WithPreloadPressed()
 	{
-		GD.Print("使用预加载切换场景4 (C#)");
+		GD.Print("Switch scene 4 with preload (C#) 使用预加载切换场景4 (C#)");
 		var manager = (LongSceneManagerCs.LongSceneManagerCs)GetNode("/root/LongSceneManagerCs");
 		manager.SwitchSceneGD(TEST_SCENE_4_PATH, true, "");
 	}
 
 	private void OnSwitchScene4DirectPressed()
 	{
-		GD.Print("直接加载场景4 (C#)");
+		GD.Print("Direct load scene 4 (C#) 直接加载场景4 (C#)");
 		var manager = (LongSceneManagerCs.LongSceneManagerCs)GetNode("/root/LongSceneManagerCs");
 		manager.SwitchSceneGD(TEST_SCENE_4_PATH, true, "");
 	}
 
-	// scene5切换函数
+	// scene5 switch functions scene5切换函数
 	private void OnSwitchScene5WithPreloadPressed()
 	{
-		GD.Print("使用预加载切换场景5 (C#)");
+		GD.Print("Switch scene 5 with preload (C#) 使用预加载切换场景5 (C#)");
 		var manager = (LongSceneManagerCs.LongSceneManagerCs)GetNode("/root/LongSceneManagerCs");
 		manager.SwitchSceneGD(TEST_SCENE_5_PATH, true, "");
 	}
 
 	private void OnSwitchScene5DirectPressed()
 	{
-		GD.Print("直接加载场景5 (C#)");
+		GD.Print("Direct load scene 5 (C#) 直接加载场景5 (C#)");
 		var manager = (LongSceneManagerCs.LongSceneManagerCs)GetNode("/root/LongSceneManagerCs");
 		manager.SwitchSceneGD(TEST_SCENE_5_PATH, true, "");
 	}
 
 	private void OnSceneSwitchStarted(string fromScene, string toScene)
 	{
-		GD.Print($"场景2 - 切换开始 (C#): {fromScene} -> {toScene}");
+		GD.Print($"Scene 2 - switch started (C#) 场景2 - 切换开始 (C#): {fromScene} -> {toScene}");
 	}
 
 	private void OnSceneSwitchCompleted(string scenePath)
 	{
-		GD.Print($"场景2 - 切换完成 (C#): {scenePath}");
+		GD.Print($"Scene 2 - switch completed (C#) 场景2 - 切换完成 (C#): {scenePath}");
 	}
 
-	// 移除缓存功能
+	// Remove cache functions 移除缓存功能
 	private void OnRemovePreloadScene3Pressed()
 	{
-		GD.Print("移除预加载资源场景3 (C#)");
+		GD.Print("Remove preloaded resource scene 3 (C#) 移除预加载资源场景3 (C#)");
 		var manager = (LongSceneManagerCs.LongSceneManagerCs)GetNode("/root/LongSceneManagerCs");
 		manager.RemovePreloadedResource(TEST_SCENE_3_PATH);
 		UpdateInfo();
@@ -312,7 +312,7 @@ Resource List:
 
 	private void OnRemoveCachedScene3Pressed()
 	{
-		GD.Print("移除实例化缓存场景3 (C#)");
+		GD.Print("Remove cached scene 3 (C#) 移除实例化缓存场景3 (C#)");
 		var manager = (LongSceneManagerCs.LongSceneManagerCs)GetNode("/root/LongSceneManagerCs");
 		manager.RemoveCachedScene(TEST_SCENE_3_PATH);
 		UpdateInfo();
@@ -320,7 +320,7 @@ Resource List:
 
 	private void OnRemovePreloadScene4Pressed()
 	{
-		GD.Print("移除预加载资源场景4 (C#)");
+		GD.Print("Remove preloaded resource scene 4 (C#) 移除预加载资源场景4 (C#)");
 		var manager = (LongSceneManagerCs.LongSceneManagerCs)GetNode("/root/LongSceneManagerCs");
 		manager.RemovePreloadedResource(TEST_SCENE_4_PATH);
 		UpdateInfo();
@@ -328,7 +328,7 @@ Resource List:
 
 	private void OnRemoveCachedScene4Pressed()
 	{
-		GD.Print("移除实例化缓存场景4 (C#)");
+		GD.Print("Remove cached scene 4 (C#) 移除实例化缓存场景4 (C#)");
 		var manager = (LongSceneManagerCs.LongSceneManagerCs)GetNode("/root/LongSceneManagerCs");
 		manager.RemoveCachedScene(TEST_SCENE_4_PATH);
 		UpdateInfo();
@@ -336,7 +336,7 @@ Resource List:
 
 	private void OnRemovePreloadScene5Pressed()
 	{
-		GD.Print("移除预加载资源场景5 (C#)");
+		GD.Print("Remove preloaded resource scene 5 (C#) 移除预加载资源场景5 (C#)");
 		var manager = (LongSceneManagerCs.LongSceneManagerCs)GetNode("/root/LongSceneManagerCs");
 		manager.RemovePreloadedResource(TEST_SCENE_5_PATH);
 		UpdateInfo();
@@ -344,7 +344,7 @@ Resource List:
 
 	private void OnRemoveCachedScene5Pressed()
 	{
-		GD.Print("移除实例化缓存场景5 (C#)");
+		GD.Print("Remove cached scene 5 (C#) 移除实例化缓存场景5 (C#)");
 		var manager = (LongSceneManagerCs.LongSceneManagerCs)GetNode("/root/LongSceneManagerCs");
 		manager.RemoveCachedScene(TEST_SCENE_5_PATH);
 		UpdateInfo();

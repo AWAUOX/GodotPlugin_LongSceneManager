@@ -4,6 +4,8 @@ extends CanvasLayer
 class_name BlackScreen
 
 #"""
+#Black screen transition scene
+#Provides fade-in/fade-out effect, configurable
 #黑屏过渡场景
 #提供淡入淡出效果，可配置
 #"""
@@ -16,9 +18,9 @@ signal fade_out_started
 signal fade_out_completed
 
 @export_category("过渡设置")
-@export var fade_in_duration: float = 0.3  # 淡入持续时间（秒）
-@export var fade_out_duration: float = 0.3  # 淡出持续时间（秒）
-@export var color: Color = Color(0, 0, 0, 1)  # 屏幕颜色
+@export var fade_in_duration: float = 0.3  # Fade-in duration (seconds) 淡入持续时间（秒）
+@export var fade_out_duration: float = 0.3  # Fade-out duration (seconds) 淡出持续时间（秒）
+@export var color: Color = Color(0, 0, 0, 1)  # Screen color 屏幕颜色
 
 @export_category("高级设置")
 @export var fade_in_ease: Tween.EaseType = Tween.EASE_OUT
@@ -31,11 +33,11 @@ var tween: Tween
 var is_transitioning: bool = false
 
 func _ready():
-	# 设置层级为最高
+	# Set layer to highest 设置层级为最高
 	layer = 1000
 	follow_viewport_enabled = true
 	
-	# 创建颜色矩形作为遮罩
+	# Create color rect as mask 创建颜色矩形作为遮罩
 	#color_rect = ColorRect.new()
 	
 	color_rect.color = color
@@ -46,14 +48,14 @@ func _ready():
 	color_rect.anchor_bottom = 1
 	color_rect.mouse_filter = Control.MOUSE_FILTER_STOP
 	
-	# 初始状态透明
+	# Initial state transparent 初始状态透明
 	color_rect.modulate.a = 0
 	color_rect.visible = false
 	
 	#add_child(color_rect)
 
 func fade_in() -> void:
-	#"""淡入黑屏"""
+	#"""Fade in black screen 淡入黑屏"""
 	if is_transitioning:
 		_stop_current_tween()
 	
@@ -71,11 +73,12 @@ func fade_in() -> void:
 	await tween.finished
 	is_transitioning = false
 	fade_in_completed.emit()
-	print("黑屏淡入完成")
+	print("Black screen fade-in completed 黑屏淡入完成")
 
 func fade_out() -> void:
-	#"""淡出黑屏"""
+	#"""Fade out black screen 淡出黑屏"""
 	if is_transitioning:
+		# Stop current transition animation 停止当前的过渡动画
 		_stop_current_tween()
 	
 	is_transitioning = true
@@ -90,21 +93,21 @@ func fade_out() -> void:
 	color_rect.visible = false
 	is_transitioning = false
 	fade_out_completed.emit()
-	print("黑屏淡出完成")
+	print("Black screen fade-out completed 黑屏淡出完成")
 
 func _stop_current_tween() -> void:
-	#"""停止当前的过渡动画"""
+	#"""Stop current transition animation 停止当前的过渡动画"""
 	if tween and tween.is_valid():
 		tween.kill()
 	is_transitioning = false
 
 func set_immediate_visible(visible: bool) -> void:
-	#"""立即显示或隐藏黑屏（无过渡）"""
+	#"""Immediately show or hide black screen (no transition) 立即显示或隐藏黑屏（无过渡）"""
 	_stop_current_tween()
 	color_rect.visible = visible
 	color_rect.modulate.a = 1.0 if visible else 0.0
 
 func _notification(what: int) -> void:
-	#"""处理窗口大小变化"""
+	#"""Handle window size changes 处理窗口大小变化"""
 	if what == NOTIFICATION_WM_SIZE_CHANGED:
 		color_rect.size = get_viewport().get_visible_rect().size

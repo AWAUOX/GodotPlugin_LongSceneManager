@@ -8,15 +8,15 @@ const TEST_SCENE_2_PATH = "res://demo_test_scene_manager/test_scene_2.tscn"
 
 
 func _ready() -> void:
-	print("=== Test Scene 3 Loaded ===")
+	print("=== Test Scene 3 Loaded 测试场景3加载完成 ===")
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and event.keycode == KEY_Q:
-		print("按下Q键，返回场景2")
+		print("Press Q key, back to scene 2 按下Q键，返回场景2")
 		await LongSceneManager.switch_scene(TEST_SCENE_2_PATH, true, "")
 	
 	if event is InputEventKey and event.pressed and event.keycode == KEY_E:
-		print("按下E键")
+		print("Press E key 按下E键")
 		timer.start()
 		
 func _process(delta: float) -> void:

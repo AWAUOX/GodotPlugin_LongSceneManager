@@ -1,13 +1,13 @@
 extends Control
 
-# 保留所有场景路径常量
+# Keep all scene path constants 保留所有场景路径常量
 const MAIN_SCENE_PATH = "res://demo_test_scene_manager/main_scene.tscn"
 const TEST_SCENE_1_PATH = "res://demo_test_scene_manager/test_scene_1.tscn"
 const TEST_SCENE_3_PATH = "res://demo_test_scene_manager/test_scene_3.tscn"
 const TEST_SCENE_4_PATH = "res://demo_test_scene_manager/test_scene_4.tscn"
 const TEST_SCENE_5_PATH = "res://demo_test_scene_manager/test_scene_5.tscn"
 
-# 按钮声明（含新增的scene4/scene5切换按钮）
+# Button declarations (including new scene4/scene5 switch buttons) 按钮声明（含新增的scene4/scene5切换按钮）
 @onready var button_main: Button = $VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer/Button_Main
 @onready var button_scene1: Button = $VBoxContainer/HBoxContainer/VBoxContainer/HBoxContainer/Button_Scene1
 
@@ -40,9 +40,9 @@ const TEST_SCENE_5_PATH = "res://demo_test_scene_manager/test_scene_5.tscn"
 var is_first_enter:bool = true
 
 func _ready():
-	print("=== Test Scene 2 Loaded ===")
+	print("=== Test Scene 2 Loaded 测试场景2加载完成 ===")
 	set_process(false)
-	# 连接所有按钮信号（补scene4/scene5切换按钮连接）
+	# Connect all button signals (including scene4/scene5 switch buttons) 连接所有按钮信号（补scene4/scene5切换按钮连接）
 	button_main.pressed.connect(_on_main_pressed)
 	button_scene1.pressed.connect(_on_scene1_pressed)
 	button_preload_scene_3.pressed.connect(_on_preload_scene_3_pressed)
@@ -50,12 +50,12 @@ func _ready():
 	button_preload_scene_5.pressed.connect(_on_preload_scene_5_pressed)
 	button_switch_scene_3_with_preload.pressed.connect(_on_switch_scene_3_with_preload_pressed)
 	button_switch_scene_3_direct.pressed.connect(_on_switch_scene_3_direct_pressed)
-	# 新增scene4/scene5切换按钮连接
+	# New scene4/scene5 switch button connections 新增scene4/scene5切换按钮连接
 	button_switch_scene_4_with_preload.pressed.connect(_on_switch_scene_4_with_preload_pressed)
 	button_switch_scene_4_direct.pressed.connect(_on_switch_scene_4_direct_pressed)
 	button_switch_scene_5_with_preload.pressed.connect(_on_switch_scene_5_with_preload_pressed)
 	button_switch_scene_5_direct.pressed.connect(_on_switch_scene_5_direct_pressed)
-	# 连接移除缓存按钮信号
+	# Connect remove cache button signals 连接移除缓存按钮信号
 	button_remove_preload_scene_3.pressed.connect(_on_remove_preload_scene_3_pressed)
 	button_remove_cached_scene_3.pressed.connect(_on_remove_cached_scene_3_pressed)
 	button_remove_preload_scene_4.pressed.connect(_on_remove_preload_scene_4_pressed)
@@ -76,38 +76,38 @@ func _enter_tree() -> void:
 
 func _process(delta):
 	_update_info()
-	# 更新三个场景的预加载进度
+	# Update preload progress for three scenes 更新三个场景的预加载进度
 	var scene3_progress = LongSceneManager.get_loading_progress(TEST_SCENE_3_PATH)
 	var scene4_progress = LongSceneManager.get_loading_progress(TEST_SCENE_4_PATH)
 	var scene5_progress = LongSceneManager.get_loading_progress(TEST_SCENE_5_PATH)
 	
-	# 场景3进度
+	# Scene 3 progress 场景3进度
 	if scene3_progress > 0 and scene3_progress < 1.0:
 		progress_bar_preload_scene_3.value = scene3_progress * 100
-		#label_info.text = "预加载场景3进度: " + str(round(scene3_progress * 100)) + "%"
+		#label_info.text = "Preload scene 3 progress: 预加载场景3进度: " + str(round(scene3_progress * 100)) + "%"
 	elif scene3_progress >= 1.0:
 		progress_bar_preload_scene_3.value = 100
-		#label_info.text = "场景3预加载完成"
+		#label_info.text = "Scene 3 preload completed 场景3预加载完成"
 	else:
 		progress_bar_preload_scene_3.value = 0
 	
-	# 场景4进度
+	# Scene 4 progress 场景4进度
 	if scene4_progress > 0 and scene4_progress < 1.0:
 		progress_bar_preload_scene_4.value = scene4_progress * 100
-		#label_info.text = "预加载场景4进度: " + str(round(scene4_progress * 100)) + "%"
+		#label_info.text = "Preload scene 4 progress: 预加载场景4进度: " + str(round(scene4_progress * 100)) + "%"
 	elif scene4_progress >= 1.0:
 		progress_bar_preload_scene_4.value = 100
-		#label_info.text = "场景4预加载完成"
+		#label_info.text = "Scene 4 preload completed 场景4预加载完成"
 	else:
 		progress_bar_preload_scene_4.value = 0
 	
-	# 场景5进度
+	# Scene 5 progress 场景5进度
 	if scene5_progress > 0 and scene5_progress < 1.0:
 		progress_bar_preload_scene_5.value = scene5_progress * 100
-		#label_info.text = "预加载场景5进度: " + str(round(scene5_progress * 100)) + "%"
+		#label_info.text = "Preload scene 5 progress: 预加载场景5进度: " + str(round(scene5_progress * 100)) + "%"
 	elif scene5_progress >= 1.0:
 		progress_bar_preload_scene_5.value = 100
-		#label_info.text = "场景5预加载完成"
+		#label_info.text = "Scene 5 preload completed 场景5预加载完成"
 	else:
 		progress_bar_preload_scene_5.value = 0
 
@@ -117,13 +117,13 @@ func _update_info():
 	progress_bar_preload_scene_4.value = 0
 	progress_bar_preload_scene_5.value = 0
 
-	# 处理实例化场景缓存列表
+	# Process instance scene cache list 处理实例化场景缓存列表
 	var instance_paths = []
 	for s in cache_info.instance_cache.scenes:
 		instance_paths.append(s.path)
 	var instance_list = "\n".join(instance_paths) if not instance_paths.is_empty() else "（empty）"
 
-	# 处理预加载资源缓存列表
+	# Process preload resource cache list 处理预加载资源缓存列表
 	var preload_list = "\n".join(cache_info.preload_cache.scenes) if not cache_info.preload_cache.scenes.is_empty() else "（empty）"
 
 	label_info.text = """
@@ -148,98 +148,98 @@ Resource List:
 		"preload_list": preload_list
 	})
 
-# 原有切换函数
+# Original switch functions 原有切换函数
 func _on_main_pressed():
-	print("切换回主场景")
+	print("Switch back to main scene 切换回主场景")
 	await LongSceneManager.switch_scene(MAIN_SCENE_PATH, true, "")
 
 func _on_scene1_pressed():
-	print("切换到场景1")
+	print("Switch to scene 1 切换到场景1")
 	await LongSceneManager.switch_scene(TEST_SCENE_1_PATH, true, "")
 
-# 预加载函数（原有）
+# Preload functions (original) 预加载函数（原有）
 func _on_preload_scene_3_pressed():
-	print("预加载场景3")
+	print("Preload scene 3 预加载场景3")
 	set_process(true)
 	LongSceneManager.preload_scene(TEST_SCENE_3_PATH)
 	_update_info()
 
 func _on_preload_scene_4_pressed():
-	print("预加载场景4")
+	print("Preload scene 4 预加载场景4")
 	set_process(true)
 	LongSceneManager.preload_scene(TEST_SCENE_4_PATH)
 	_update_info()
 
 func _on_preload_scene_5_pressed():
-	print("预加载场景5")
+	print("Preload scene 5 预加载场景5")
 	set_process(true)
 	LongSceneManager.preload_scene(TEST_SCENE_5_PATH)
 	_update_info()
 
-# scene3切换函数（原有）
+# scene3 switch functions (original) scene3切换函数（原有）
 func _on_switch_scene_3_with_preload_pressed():
-	print("使用预加载切换场景3")
+	print("Switch scene 3 with preload 使用预加载切换场景3")
 	await LongSceneManager.switch_scene(TEST_SCENE_3_PATH, true, "")
 
 func _on_switch_scene_3_direct_pressed():
-	print("直接加载场景3")
+	print("Direct load scene 3 直接加载场景3")
 	await LongSceneManager.switch_scene(TEST_SCENE_3_PATH, true, "")
 
-# ============== 新增scene4切换函数 ==============
+# ============== New scene4 switch functions ============== 新增scene4切换函数 ==============
 func _on_switch_scene_4_with_preload_pressed():
-	# 使用预加载切换场景4（和scene3逻辑完全一致）
-	print("使用预加载切换场景4")
+	# Switch scene 4 with preload (same logic as scene3) 使用预加载切换场景4（和scene3逻辑完全一致）
+	print("Switch scene 4 with preload 使用预加载切换场景4")
 	await LongSceneManager.switch_scene(TEST_SCENE_4_PATH, true, "")
 
 func _on_switch_scene_4_direct_pressed():
-	# 直接加载场景4（不预加载）
-	print("直接加载场景4")
+	# Direct load scene 4 (no preload) 直接加载场景4（不预加载）
+	print("Direct load scene 4 直接加载场景4")
 	await LongSceneManager.switch_scene(TEST_SCENE_4_PATH, true, "")
 
-# ============== 新增scene5切换函数 ==============
+# ============== New scene5 switch functions ============== 新增scene5切换函数 ==============
 func _on_switch_scene_5_with_preload_pressed():
-	# 使用预加载切换场景5
-	print("使用预加载切换场景5")
+	# Switch scene 5 with preload 使用预加载切换场景5
+	print("Switch scene 5 with preload 使用预加载切换场景5")
 	await LongSceneManager.switch_scene(TEST_SCENE_5_PATH, true, "")
 
 func _on_switch_scene_5_direct_pressed():
-	# 直接加载场景5
-	print("直接加载场景5")
+	# Direct load scene 5 直接加载场景5
+	print("Direct load scene 5 直接加载场景5")
 	await LongSceneManager.switch_scene(TEST_SCENE_5_PATH, true, "")
 
 func _on_scene_switch_started(from_scene: String, to_scene: String):
-	print("场景2 - 切换开始: ", from_scene, " -> ", to_scene)
+	print("Scene1-switch start 场景2-切换开始: ", from_scene, " -> ", to_scene)
 
 func _on_scene_switch_completed(scene_path: String):
-	print("场景2 - 切换完成: ", scene_path)
+	print("Scene2-switch start 场景2-切换完成: ", scene_path)
 
-# ============== 移除缓存功能 ==============
+# ==============remove cache 移除缓存功能 ==============
 func _on_remove_preload_scene_3_pressed():
-	print("移除预加载资源场景3")
+	print("remove preload resource scene3 移除预加载资源场景3")
 	LongSceneManager.remove_preloaded_resource(TEST_SCENE_3_PATH)
 	_update_info()
 
 func _on_remove_cached_scene_3_pressed():
-	print("移除实例化缓存场景3")
+	print("remove instate scene3 移除实例化缓存场景3")
 	LongSceneManager.remove_cached_scene(TEST_SCENE_3_PATH)
 	_update_info()
 
 func _on_remove_preload_scene_4_pressed():
-	print("移除预加载资源场景4")
+	print("remove preload resource scene4 移除预加载资源场景4")
 	LongSceneManager.remove_preloaded_resource(TEST_SCENE_4_PATH)
 	_update_info()
 
 func _on_remove_cached_scene_4_pressed():
-	print("移除实例化缓存场景4")
+	print("remove instate scene4 移除实例化缓存场景4")
 	LongSceneManager.remove_cached_scene(TEST_SCENE_4_PATH)
 	_update_info()
 
 func _on_remove_preload_scene_5_pressed():
-	print("移除预加载资源场景5")
+	print("remove preload resource scene5 移除预加载资源场景5")
 	LongSceneManager.remove_preloaded_resource(TEST_SCENE_5_PATH)
 	_update_info()
 
 func _on_remove_cached_scene_5_pressed():
-	print("移除实例化缓存场景5")
+	print("remove instate scene5 移除实例化缓存场景5")
 	LongSceneManager.remove_cached_scene(TEST_SCENE_5_PATH)
 	_update_info()

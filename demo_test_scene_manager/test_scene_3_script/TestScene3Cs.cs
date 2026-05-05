@@ -10,9 +10,9 @@ public partial class TestScene3Cs : Node3D
 
 	public override void _Ready()
 	{
-		GD.Print("=== Test Scene 3 Loaded (C#) ===");
+		GD.Print("=== Test Scene 3 Loaded (C#) 测试场景3加载完成 (C#) ===");
 
-		// 获取节点引用
+		// Get node references 获取节点引用
 		timerLabel = GetNode<Label>("Camera3D/CanvasLayer/VBoxContainer/HBoxContainer/TimerLabel");
 		timer = GetNode<Timer>("Camera3D/CanvasLayer/VBoxContainer/HBoxContainer/TimerLabel/Timer");
 	}
@@ -23,14 +23,14 @@ public partial class TestScene3Cs : Node3D
 		{
 			if (keyEvent.Keycode == Key.Q)
 			{
-				GD.Print("按下Q键，返回场景2 (C#)");
+				GD.Print("Press Q key, back to scene 2 (C#) 按下Q键，返回场景2 (C#)");
 				var manager = (LongSceneManagerCs.LongSceneManagerCs)GetNode("/root/LongSceneManagerCs");
 				manager.SwitchSceneGD(TEST_SCENE_2_PATH, true, "");
 			}
 
 			if (keyEvent.Keycode == Key.E)
 			{
-				GD.Print("按下E键 (C#)");
+				GD.Print("Press E key (C#) 按下E键 (C#)");
 				timer.Start();
 			}
 		}
@@ -38,7 +38,7 @@ public partial class TestScene3Cs : Node3D
 
 	public override void _Process(double delta)
 	{
-		// 更新计时器显示
+		// Update timer display 更新计时器显示
 		if (!timer.IsStopped())
 		{
 			timerLabel.Text = $"{timer.TimeLeft:F1}";

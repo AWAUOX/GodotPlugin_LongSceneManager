@@ -127,6 +127,9 @@ func _update_info():
 	# Process preload resource cache list 处理预加载资源缓存列表
 	var preload_list = "\n".join(cache_info.preload_cache.scenes) if not cache_info.preload_cache.scenes.is_empty() else "（empty）"
 
+	# Process permanent preload resource cache list 处理永久预加载资源缓存列表
+	var permanent_preload_list = "\n".join(cache_info.permanent_preload_cache.scenes) if not cache_info.permanent_preload_cache.scenes.is_empty() else "（empty）"
+
 	label_info.text = """
 Current Scene: {current}
 Previous Scene: {previous}
@@ -138,6 +141,10 @@ Scene List:
 [Preloaded Resource Cache] Count: {preload_count}/{preload_max}
 Resource List:
 {preload_list}
+
+[Permanent Preload Cache] Count: {permanent_count}/{permanent_max}
+Resource List:
+{permanent_preload_list}
 """.format({
 		"current": cache_info.current_scene,
 		"previous": cache_info.previous_scene,
@@ -146,7 +153,10 @@ Resource List:
 		"instance_list": instance_list,
 		"preload_count": cache_info.preload_cache.size,
 		"preload_max": cache_info.preload_cache.max_size,
-		"preload_list": preload_list
+		"preload_list": preload_list,
+		"permanent_count": cache_info.permanent_preload_cache.size,
+		"permanent_max": cache_info.permanent_preload_cache.max_size,
+		"permanent_preload_list": permanent_preload_list
 	})
 
 # Original switch functions 原有切换函数

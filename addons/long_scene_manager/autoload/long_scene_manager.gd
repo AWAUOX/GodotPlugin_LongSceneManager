@@ -55,6 +55,9 @@ signal scene_switch_failed(scene_path: String)
 
 @export_range(1, 50) var max_preload_resource_cache_size: int = 8
 
+@export_category("Permanent Preload Resource Cache Configuration")
+@export_range(0, 50) var max_permanent_preload_resource_cache_size: int = 4
+
 @export var use_async_loading: bool = true
 
 @export var always_use_default_load_screen: bool = false
@@ -81,6 +84,10 @@ var cache_access_order: Array = []
 var preload_resource_cache: Dictionary = {}
 
 var preload_resource_cache_access_order: Array = []
+
+var permanent_preload_resource_cache: Dictionary = {}
+
+var permanent_preload_resource_cache_access_order: Array = []
 
 var _preload_states: Dictionary = {}
 
@@ -241,14 +248,20 @@ func switch_scene(new_scene_path: String, load_method: LoadMethod = LoadMethod.B
 # ==================== 公开API - 预加载 ====================
 
 # Preload scene resource asynchronously. 异步预加载场景资源。
-func preload_scene(scene_path: String) -> void:
+# permanent: false=临时缓存(切换时移除)，true=永久缓存(不自动移除)
+func preload_scene(scene_path: String, permanent: bool = false) -> void:
 	if not ResourceLoader.exists(scene_path):
 		push_error("[SceneManager] Error: Preload scene path does not exist: ", scene_path)
 		return
 	
-	if preload_resource_cache.has(scene_path):
-		print("[SceneManager] Scene already preloaded: ", scene_path)
-		return
+	if permanent:
+		if permanent_preload_resource_cache.has(scene_path):
+			print("[SceneManager] Scene already preloaded in permanent cache: ", scene_path)
+			return
+	else:
+		if preload_resource_cache.has(scene_path):
+			print("[SceneManager] Scene already preloaded: ", scene_path)
+			return
 	
 	if scene_cache.has(scene_path):
 		print("[SceneManager] Scene already loaded or loading: ", scene_path)
@@ -259,17 +272,19 @@ func preload_scene(scene_path: String) -> void:
 		print("[SceneManager] Scene already loaded or loading: ", scene_path)
 		return
 	
-	print("[SceneManager] Start preloading scene: ", scene_path)
+	print("[SceneManager] Start preloading scene: ", scene_path, " (permanent: ", permanent, ")")
 	scene_preload_started.emit(scene_path)
 	
 	preload_state["state"] = LoadState.LOADING
+	preload_state["permanent"] = permanent
 	
 	_preload_background(scene_path)
 
 # Preload multiple scenes at once. 批量预加载多个场景。
-func preload_scenes(scene_paths: Array[String]) -> void:
+# permanent: false=临时缓存(切换时移除)，true=永久缓存(不自动移除)
+func preload_scenes(scene_paths: Array[String], permanent: bool = false) -> void:
 	for path in scene_paths:
-		preload_scene(path)
+		preload_scene(path, permanent)
 
 # Cancel scene preloading if in progress. 取消正在进行的场景预加载。
 func cancel_preload_scene(scene_path: String) -> void:
@@ -308,16 +323,27 @@ func _preload_background(scene_path: String) -> void:
 		if _preload_pending_cleanup.has(scene_path):
 			_preload_pending_cleanup.erase(scene_path)
 			preload_resource_cache.erase(scene_path)
+			permanent_preload_resource_cache.erase(scene_path)
 			print("[SceneManager] Preload completed but cancelled by user, cleaned up: ", scene_path)
 			return
 		
-		preload_resource_cache[scene_path] = preload_state["resource"]
-		preload_resource_cache_access_order.append(scene_path)
+		var is_permanent = preload_state.get("permanent", false)
+		
+		if is_permanent:
+			if permanent_preload_resource_cache_access_order.size() >= max_permanent_preload_resource_cache_size and max_permanent_preload_resource_cache_size > 0:
+				_remove_oldest_permanent_preload_resource()
+			permanent_preload_resource_cache[scene_path] = preload_state["resource"]
+			permanent_preload_resource_cache_access_order.append(scene_path)
+			print("[SceneManager] Preloading complete, permanent resource cached: ", scene_path)
+		else:
+			preload_resource_cache[scene_path] = preload_state["resource"]
+			preload_resource_cache_access_order.append(scene_path)
+			print("[SceneManager] Preloading complete, resource cached: ", scene_path)
+		
 		preload_state["state"] = LoadState.LOADED
 		scene_preload_completed.emit(scene_path)
-		print("[SceneManager] Preloading complete, resource cached: ", scene_path)
 		
-		if preload_resource_cache_access_order.size() > max_preload_resource_cache_size:
+		if not is_permanent and preload_resource_cache_access_order.size() > max_preload_resource_cache_size:
 			_remove_oldest_preload_resource()
 	else:
 		preload_state["state"] = LoadState.NOT_LOADED
@@ -335,8 +361,10 @@ func clear_cache() -> void:
 	
 	preload_resource_cache.clear()
 	preload_resource_cache_access_order.clear()
+	permanent_preload_resource_cache.clear()
+	permanent_preload_resource_cache_access_order.clear()
 	_preload_states.clear()
-	print("[SceneManager] Preload resource cache cleared")
+	print("[SceneManager] Preload resource cache and permanent cache cleared")
 	
 	var to_remove = []
 	for scene_path in scene_cache:
@@ -401,6 +429,95 @@ func remove_cached_scene(scene_path: String) -> void:
 		if preload_resource_cache.has(scene_path):
 			print("[SceneManager] Hint: Scene is in preload resource cache. Use 'remove_preloaded_resource()' to remove preload cache.")
 
+# Remove permanent preloaded resource from cache. 从永久缓存中移除预加载的资源。
+func remove_permanent_resource(scene_path: String) -> void:
+	if permanent_preload_resource_cache.has(scene_path):
+		permanent_preload_resource_cache.erase(scene_path)
+		
+		var index = permanent_preload_resource_cache_access_order.find(scene_path)
+		if index != -1:
+			permanent_preload_resource_cache_access_order.remove_at(index)
+		
+		_clear_preload_state(scene_path)
+		
+		print("[SceneManager] Removed permanent preloaded resource: ", scene_path)
+		scene_removed_from_cache.emit(scene_path)
+	else:
+		print("[SceneManager] Warning: Permanent preloaded resource not found in cache: ", scene_path)
+
+# Clear all permanent preloaded resources. 清除所有永久预加载的资源。
+func clear_permanent_cache() -> void:
+	print("[SceneManager] Clearing permanent cache...")
+	
+	var to_remove = []
+	for path in permanent_preload_resource_cache:
+		to_remove.append(path)
+	
+	for path in to_remove:
+		permanent_preload_resource_cache.erase(path)
+		var index = permanent_preload_resource_cache_access_order.find(path)
+		if index != -1:
+			permanent_preload_resource_cache_access_order.remove_at(index)
+		scene_removed_from_cache.emit(path)
+	
+	print("[SceneManager] Permanent cache cleared")
+
+# Move resource from temporary to permanent cache. 将资源从临时缓存移到永久缓存。
+func move_to_permanent(scene_path: String) -> void:
+	if preload_resource_cache.has(scene_path):
+		var resource = preload_resource_cache.get(scene_path)
+		
+		if permanent_preload_resource_cache_access_order.size() >= max_permanent_preload_resource_cache_size and max_permanent_preload_resource_cache_size > 0:
+			_remove_oldest_permanent_preload_resource()
+		
+		preload_resource_cache.erase(scene_path)
+		var index = preload_resource_cache_access_order.find(scene_path)
+		if index != -1:
+			preload_resource_cache_access_order.remove_at(index)
+		
+		permanent_preload_resource_cache[scene_path] = resource
+		permanent_preload_resource_cache_access_order.append(scene_path)
+		
+		print("[SceneManager] Moved resource to permanent cache: ", scene_path)
+	else:
+		print("[SceneManager] Warning: Resource not found in temporary preload cache: ", scene_path)
+
+# Move resource from permanent to temporary cache. 将资源从永久缓存移到临时缓存。
+func move_to_temporary(scene_path: String) -> void:
+	if permanent_preload_resource_cache.has(scene_path):
+		var resource = permanent_preload_resource_cache.get(scene_path)
+		
+		if preload_resource_cache_access_order.size() >= max_preload_resource_cache_size:
+			_remove_oldest_preload_resource()
+		
+		permanent_preload_resource_cache.erase(scene_path)
+		var index = permanent_preload_resource_cache_access_order.find(scene_path)
+		if index != -1:
+			permanent_preload_resource_cache_access_order.remove_at(index)
+		
+		preload_resource_cache[scene_path] = resource
+		preload_resource_cache_access_order.append(scene_path)
+		
+		print("[SceneManager] Moved resource to temporary cache: ", scene_path)
+	else:
+		print("[SceneManager] Warning: Resource not found in permanent preload cache: ", scene_path)
+
+# Check if scene is in permanent cache. 检查场景是否在永久缓存中。
+func is_in_permanent_cache(scene_path: String) -> bool:
+	return permanent_preload_resource_cache.has(scene_path)
+
+# Set maximum permanent cache size and trim if needed. 设置永久缓存最大大小并在需要时修剪。
+func set_max_permanent_cache_size(new_size: int) -> void:
+	if new_size < 0:
+		push_error("[SceneManager] Error: Permanent cache size must be >= 0")
+		return
+	
+	max_permanent_preload_resource_cache_size = new_size
+	print("[SceneManager] Setting maximum permanent cache size: ", max_permanent_preload_resource_cache_size)
+	
+	while permanent_preload_resource_cache_access_order.size() > max_permanent_preload_resource_cache_size and max_permanent_preload_resource_cache_size > 0:
+		_remove_oldest_permanent_preload_resource()
+
 # Get detailed cache information for debugging. 获取详细的缓存信息用于调试。
 func get_cache_info() -> Dictionary:
 	# Instance cache section. 实例化场景缓存板块
@@ -417,6 +534,11 @@ func get_cache_info() -> Dictionary:
 	var preloaded_scenes = []
 	for path in preload_resource_cache:
 		preloaded_scenes.append(path)
+
+	# Permanent preload resource cache section. 永久预加载资源缓存板块
+	var permanent_preloaded_scenes = []
+	for path in permanent_preload_resource_cache:
+		permanent_preloaded_scenes.append(path)
 
 	# Scenes currently preloading. 正在预加载的场景
 	var preloading_scenes = []
@@ -445,13 +567,21 @@ func get_cache_info() -> Dictionary:
 			"scenes": preloaded_scenes
 		},
 
+		# Permanent preload resource cache section. 永久预加载资源缓存板块
+		"permanent_preload_cache": {
+			"size": permanent_preload_resource_cache.size(),
+			"max_size": max_permanent_preload_resource_cache_size,
+			"access_order": permanent_preload_resource_cache_access_order.duplicate(),
+			"scenes": permanent_preloaded_scenes
+		},
+
 		# Scenes currently preloading. 正在预加载的场景
 		"preloading_scenes": preloading_scenes
 	}
 
 # Check if scene is in any cache. 检查场景是否在任意缓存中。
 func is_scene_cached(scene_path: String) -> bool:
-	return scene_cache.has(scene_path) or preload_resource_cache.has(scene_path)
+	return scene_cache.has(scene_path) or preload_resource_cache.has(scene_path) or permanent_preload_resource_cache.has(scene_path)
 
 # Check if scene is currently preloading. 检查场景是否正在预加载。
 func is_scene_preloading(scene_path: String) -> bool:
@@ -501,6 +631,56 @@ func get_loading_progress(scene_path: String) -> float:
 			return 1.0
 	
 	return 1.0 if (scene_cache.has(scene_path) or preload_resource_cache.has(scene_path)) else 0.0
+
+# Get resource file size in bytes. 获取资源文件大小（字节）。
+# Returns -1 if file does not exist. 如果文件不存在返回 -1。
+func get_resource_file_size(scene_path: String) -> int:
+	if not ResourceLoader.exists(scene_path):
+		return -1
+	
+	var file = FileAccess.open(scene_path, FileAccess.READ)
+	if file == null:
+		return -1
+	
+	var size = file.get_length()
+	file.close()
+	return size
+
+# Get resource file size formatted as string (KB, MB, etc). 获取资源文件大小（格式化字符串）。
+func get_resource_file_size_formatted(scene_path: String) -> String:
+	var size = get_resource_file_size(scene_path)
+	if size < 0:
+		return "N/A"
+	
+	if size < 1024:
+		return str(size) + " B"
+	elif size < 1024 * 1024:
+		return str(size / 1024.0) + " KB"
+	elif size < 1024 * 1024 * 1024:
+		return str(size / (1024.0 * 1024.0)) + " MB"
+	else:
+		return str(size / (1024.0 * 1024.0 * 1024.0)) + " GB"
+
+# Get detailed resource information before loading. 获取资源详细信息（加载前）。
+# Includes file size, path, and loading status. 包含文件大小、路径和加载状态。
+func get_resource_info(scene_path: String) -> Dictionary:
+	var info = {
+		"path": scene_path,
+		"exists": ResourceLoader.exists(scene_path),
+		"file_size_bytes": get_resource_file_size(scene_path),
+		"file_size_formatted": get_resource_file_size_formatted(scene_path),
+		"in_temporary_cache": preload_resource_cache.has(scene_path),
+		"in_permanent_cache": permanent_preload_resource_cache.has(scene_path),
+		"in_instance_cache": scene_cache.has(scene_path),
+		"is_preloading": is_scene_preloading(scene_path),
+		"loading_progress": get_loading_progress(scene_path)
+	}
+	
+	if _preload_states.has(scene_path):
+		info["preload_state"] = _preload_states[scene_path]["state"]
+		info["is_permanent_preload"] = _preload_states[scene_path].get("permanent", false)
+	
+	return info
 
 # Set maximum instance cache size and trim if needed. 设置实例缓存最大大小并在需要时修剪。
 func set_max_cache_size(new_size: int) -> void:
@@ -615,7 +795,10 @@ func _load_scene_by_method(scene_path: String, load_method: LoadMethod, cache_cu
 			print("[SceneManager] Load method: PRELOAD_CACHE")
 			if preload_resource_cache.has(scene_path):
 				print("[SceneManager] Using preload resource cache: ", scene_path)
-				await _handle_preloaded_resource(scene_path, load_screen_instance, cache_current_scene)
+				await _handle_preloaded_resource(scene_path, load_screen_instance, cache_current_scene, false)
+			elif permanent_preload_resource_cache.has(scene_path):
+				print("[SceneManager] Using permanent preload resource cache: ", scene_path)
+				await _handle_preloaded_resource(scene_path, load_screen_instance, cache_current_scene, true)
 			elif _preload_states.has(scene_path) and _preload_states[scene_path]["state"] == LoadState.LOADING:
 				print("[SceneManager] Scene is preloading, waiting for completion...")
 				await _handle_preloading_scene(scene_path, load_screen_instance, cache_current_scene)
@@ -634,7 +817,10 @@ func _load_scene_by_method(scene_path: String, load_method: LoadMethod, cache_cu
 			print("[SceneManager] Load method: BOTH_PRELOAD_FIRST")
 			if preload_resource_cache.has(scene_path):
 				print("[SceneManager] Using preload resource cache: ", scene_path)
-				await _handle_preloaded_resource(scene_path, load_screen_instance, cache_current_scene)
+				await _handle_preloaded_resource(scene_path, load_screen_instance, cache_current_scene, false)
+			elif permanent_preload_resource_cache.has(scene_path):
+				print("[SceneManager] Using permanent preload resource cache: ", scene_path)
+				await _handle_preloaded_resource(scene_path, load_screen_instance, cache_current_scene, true)
 			elif _preload_states.has(scene_path) and _preload_states[scene_path]["state"] == LoadState.LOADING:
 				print("[SceneManager] Scene is preloading, waiting for completion...")
 				await _handle_preloading_scene(scene_path, load_screen_instance, cache_current_scene)
@@ -651,7 +837,10 @@ func _load_scene_by_method(scene_path: String, load_method: LoadMethod, cache_cu
 				await _handle_cached_scene(scene_path, load_screen_instance, cache_current_scene)
 			elif preload_resource_cache.has(scene_path):
 				print("[SceneManager] Using preload resource cache: ", scene_path)
-				await _handle_preloaded_resource(scene_path, load_screen_instance, cache_current_scene)
+				await _handle_preloaded_resource(scene_path, load_screen_instance, cache_current_scene, false)
+			elif permanent_preload_resource_cache.has(scene_path):
+				print("[SceneManager] Using permanent preload resource cache: ", scene_path)
+				await _handle_preloaded_resource(scene_path, load_screen_instance, cache_current_scene, true)
 			elif _preload_states.has(scene_path) and _preload_states[scene_path]["state"] == LoadState.LOADING:
 				print("[SceneManager] Scene is preloading, waiting for completion...")
 				await _handle_preloading_scene(scene_path, load_screen_instance, cache_current_scene)
@@ -666,15 +855,20 @@ func _load_scene_by_method(scene_path: String, load_method: LoadMethod, cache_cu
 # ==================== 场景切换处理函数 ====================
 
 # Handle switch using preloaded resource. 处理使用预加载资源的场景切换。
-func _handle_preloaded_resource(scene_path: String, load_screen_instance: Node, use_cache: bool) -> void:
+# permanent: true=从永久缓存获取(不移除)，false=从临时缓存获取(使用后移除)
+func _handle_preloaded_resource(scene_path: String, load_screen_instance: Node, use_cache: bool, permanent: bool) -> void:
 	await _show_load_screen(load_screen_instance)
 
-	var packed_scene = preload_resource_cache.get(scene_path)
-	preload_resource_cache.erase(scene_path)
-
-	var index = preload_resource_cache_access_order.find(scene_path)
-	if index != -1:
-		preload_resource_cache_access_order.remove_at(index)
+	var packed_scene
+	if permanent:
+		packed_scene = permanent_preload_resource_cache.get(scene_path)
+		print("[SceneManager] Using permanent preload resource, not removing from cache: ", scene_path)
+	else:
+		packed_scene = preload_resource_cache.get(scene_path)
+		preload_resource_cache.erase(scene_path)
+		var index = preload_resource_cache_access_order.find(scene_path)
+		if index != -1:
+			preload_resource_cache_access_order.remove_at(index)
 
 	if not packed_scene:
 		push_error("[SceneManager] Preload resource cache error: ", scene_path)
@@ -716,12 +910,20 @@ func _handle_preloading_scene(scene_path: String, load_screen_instance: Node, us
 
 	var preload_state = _get_preload_state(scene_path)
 	if preload_state["resource"]:
-		preload_resource_cache[scene_path] = preload_state["resource"]
-		preload_resource_cache_access_order.append(scene_path)
-		print("[SceneManager] Preload resource cached: ", scene_path)
+		var is_permanent = preload_state.get("permanent", false)
+		if is_permanent:
+			if permanent_preload_resource_cache_access_order.size() >= max_permanent_preload_resource_cache_size and max_permanent_preload_resource_cache_size > 0:
+				_remove_oldest_permanent_preload_resource()
+			permanent_preload_resource_cache[scene_path] = preload_state["resource"]
+			permanent_preload_resource_cache_access_order.append(scene_path)
+			print("[SceneManager] Preload completed, cached to permanent: ", scene_path)
+		else:
+			preload_resource_cache[scene_path] = preload_state["resource"]
+			preload_resource_cache_access_order.append(scene_path)
+			print("[SceneManager] Preload resource cached: ", scene_path)
 
-		if preload_resource_cache_access_order.size() > max_preload_resource_cache_size:
-			_remove_oldest_preload_resource()
+			if preload_resource_cache_access_order.size() > max_preload_resource_cache_size:
+				_remove_oldest_preload_resource()
 
 	_clear_preload_state(scene_path)
 
@@ -799,20 +1001,26 @@ func _collect_children_recursive(root: Node) -> Array:
 
 # Instantiate preloaded scene and perform switch. 实例化预加载场景并执行切换。
 func _instantiate_and_switch(scene_path: String, load_screen_instance: Node, use_cache: bool) -> void:
-	if not preload_resource_cache.has(scene_path):
+	var packed_scene
+	var from_permanent = false
+	
+	if preload_resource_cache.has(scene_path):
+		packed_scene = preload_resource_cache.get(scene_path)
+		preload_resource_cache.erase(scene_path)
+		var index = preload_resource_cache_access_order.find(scene_path)
+		if index != -1:
+			preload_resource_cache_access_order.remove_at(index)
+	elif permanent_preload_resource_cache.has(scene_path):
+		packed_scene = permanent_preload_resource_cache.get(scene_path)
+		from_permanent = true
+		print("[SceneManager] Using from permanent cache, not removing: ", scene_path)
+	else:
 		push_error("[SceneManager] Preloaded resource does not exist: ", scene_path)
 		await _hide_load_screen(load_screen_instance)
 		scene_switch_failed.emit(scene_path)
 		return
 
 	print("[SceneManager] Instantiating preloaded scene: ", scene_path)
-
-	var packed_scene = preload_resource_cache.get(scene_path)
-	# Remove from preload cache (reference correct approach from _handle_preloaded_resource). 从预加载缓存移除（参考 _handle_preloaded_resource 的正确做法）
-	preload_resource_cache.erase(scene_path)
-	var index = preload_resource_cache_access_order.find(scene_path)
-	if index != -1:
-		preload_resource_cache_access_order.remove_at(index)
 
 	var new_scene = await _instantiate_scene_deferred(packed_scene, load_screen_instance)
 	if not new_scene:
@@ -1026,6 +1234,19 @@ func _remove_oldest_preload_resource() -> void:
 	if preload_resource_cache.has(oldest_path):
 		preload_resource_cache.erase(oldest_path)
 		print("[SceneManager] Removing old preload resource: ", oldest_path)
+
+# Remove oldest resource from permanent preload cache (FIFO). 从永久预加载缓存移除最旧的资源（FIFO）。
+func _remove_oldest_permanent_preload_resource() -> void:
+	if permanent_preload_resource_cache_access_order.size() == 0:
+		return
+	
+	var oldest_path = permanent_preload_resource_cache_access_order[0]
+	permanent_preload_resource_cache_access_order.remove_at(0)
+	
+	if permanent_preload_resource_cache.has(oldest_path):
+		permanent_preload_resource_cache.erase(oldest_path)
+		scene_removed_from_cache.emit(oldest_path)
+		print("[SceneManager] Removing oldest permanent preload resource (FIFO): ", oldest_path)
 
 # Reload scene as resource and cache it. 重新加载场景为资源并缓存。
 func _reset_scene_as_resource(scene_path: String) -> void:

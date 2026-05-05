@@ -52,7 +52,7 @@ alignment = 1
 [node name="GridContainer" type="GridContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer" unique_id=1668834939]
 layout_mode = 2
 size_flags_vertical = 3
-columns = 5
+columns = 6
 
 [node name="Button_PreloadScene3" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer" unique_id=66353143]
 layout_mode = 2
@@ -82,6 +82,12 @@ autowrap_mode = 3
 layout_mode = 2
 size_flags_horizontal = 3
 text = "RemoveScene3Instance"
+autowrap_mode = 3
+
+[node name="LoadScene3WithSceneCache" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer" unique_id=1014534135]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Load Scene3 With Scene Cache"
 autowrap_mode = 3
 
 [node name="Button_PreloadScene4" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer" unique_id=197937341]
@@ -114,6 +120,12 @@ size_flags_horizontal = 3
 text = "RemoveScene4Instance"
 autowrap_mode = 3
 
+[node name="LoadScene4WithSceneCache" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer" unique_id=822711280]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Load Scene4 With Scene Cache"
+autowrap_mode = 3
+
 [node name="Button_PreloadScene5" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer" unique_id=1069503802]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -142,6 +154,12 @@ autowrap_mode = 3
 layout_mode = 2
 size_flags_horizontal = 3
 text = "RemoveScene5Instance"
+autowrap_mode = 3
+
+[node name="LoadScene5WithSceneCache" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer" unique_id=2017661719]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Load Scene5 With Scene Cache"
 autowrap_mode = 3
 
 [node name="HBoxContainer" type="GridContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer" unique_id=1133579129]
@@ -310,6 +328,9 @@ size_flags_horizontal = 3
 custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
 
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer/LoadScene3WithSceneCache" to="." method="_on_load_scene_3_with_scene_cache_pressed"]
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer/LoadScene4WithSceneCache" to="." method="_on_load_scene_4_with_scene_cache_pressed"]
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer/LoadScene5WithSceneCache" to="." method="_on_load_scene_5_with_scene_cache_pressed"]
 [connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer/Button_Main" to="." method="_on_button_main_pressed"]
 [connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer/Button_Scene1" to="." method="_on_button_scene_1_pressed"]
 [connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer/PreloadAll" to="." method="_on_preload_all_pressed"]

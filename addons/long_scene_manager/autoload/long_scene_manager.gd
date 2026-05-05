@@ -14,6 +14,7 @@ enum LoadState {
 	NOT_LOADED,      # Not loaded. 未加载
 	LOADING,         # Loading in progress. 正在加载中
 	LOADED,          # Preloaded (resource loaded but not instantiated). 已预加载（资源已加载但未实例化）
+	INSTANTIATED,    # Instantiated and stored in instance cache. 已实例化并存入实例缓存
 	CANCELLED        # Preload cancelled. 预加载已取消
 }
 
@@ -150,6 +151,8 @@ func preload_scene(scene_path: String, fixed: bool = false) -> void:
 	if resource_state["state"] == LoadState.LOADED:
 		print("[SceneManager] Scene already preloaded: ", scene_path)
 		return
+	if resource_state["state"] == LoadState.INSTANTIATED:
+		print("[SceneManager] Scene was instantiated, allowing re-preload: ", scene_path)
 	if resource_state["state"] == LoadState.CANCELLED:
 		print("[SceneManager] Scene preload was cancelled, will restart: ", scene_path)
 
@@ -158,10 +161,6 @@ func preload_scene(scene_path: String, fixed: bool = false) -> void:
 		return
 	if fixed_preload_resource_cache.has(scene_path):
 		print("[SceneManager] Scene already in fixed cache: ", scene_path)
-		return
-
-	if instantiate_scene_cache.has(scene_path):
-		print("[SceneManager] Scene already in instance cache: ", scene_path)
 		return
 
 	print("[SceneManager] Start preloading scene: ", scene_path, " (fixed: ", fixed, ")")
@@ -1119,6 +1118,9 @@ func _add_to_cache(scene_path: String, scene_instance: Node) -> void:
 	instantiate_scene_cache_order.append(scene_path)
 	scene_cached.emit(scene_path)
 
+	if _preload_resource_states.has(scene_path):
+		_preload_resource_states[scene_path]["state"] = LoadState.INSTANTIATED
+
 	if instantiate_scene_cache_order.size() > max_cache_size:
 		_remove_oldest_cached_scene()
 
@@ -1137,6 +1139,9 @@ func _remove_oldest_cached_scene() -> void:
 		instantiate_scene_cache.erase(oldest_path)
 		scene_removed_from_cache.emit(oldest_path)
 		print("[SceneManager] Removing old cache: ", oldest_path)
+
+	if _preload_resource_states.has(oldest_path):
+		_clear_preload_resource_state(oldest_path)
 
 func _remove_oldest_temp_preload_resource() -> void:
 	if temp_preloaded_resource_cache_order.size() == 0:

@@ -330,3 +330,17 @@ func _on_remove_fix_resource_4_pressed() -> void:
 	print("Remove fixed resource scene 4 移除固定预加载资源场景4")
 	LongSceneManager.remove_fixed_resource(TEST_SCENE_4_PATH)
 	_update_info()
+
+
+func _on_load_scene_3_with_scene_cache_pressed() -> void:
+	await LongSceneManager.switch_scene(TEST_SCENE_3_PATH,2, true, "")
+
+
+
+func _on_load_scene_4_with_scene_cache_pressed() -> void:
+	await LongSceneManager.switch_scene(TEST_SCENE_4_PATH,2, true, "")
+
+
+
+func _on_load_scene_5_with_scene_cache_pressed() -> void:
+	await LongSceneManager.switch_scene(TEST_SCENE_5_PATH,2, true, "")

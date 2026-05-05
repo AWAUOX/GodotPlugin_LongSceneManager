@@ -247,12 +247,15 @@ func _on_remove_cached_scene_5_pressed():
 
 
 func _on_preload_all_pressed() -> void:
-	pass # Replace with function body.
-
+	LongSceneManager.preload_scenes([TEST_SCENE_3_PATH,TEST_SCENE_4_PATH,TEST_SCENE_5_PATH])
+	#pass # Replace with function body.
+	_update_info()
 
 func _on_cancel_all_preload_pressed() -> void:
-	pass # Replace with function body.
+	LongSceneManager.cancel_all_preloads()
+
 
 
 func _on_cancel_preload_scene_3_pressed() -> void:
-	pass # Replace with function body.
+	LongSceneManager.cancel_preload_scene(TEST_SCENE_3_PATH)
+	

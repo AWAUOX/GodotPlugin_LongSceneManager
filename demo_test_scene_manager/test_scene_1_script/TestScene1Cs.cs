@@ -1,131 +1,130 @@
 using Godot;
 using System;
+using LongSceneManagerCs;
 
 public partial class TestScene1Cs : Node2D
 {
-	private const string MAIN_SCENE_PATH = "res://demo_test_scene_manager/main_scene.tscn";
-	private const string TEST_SCENE_2_PATH = "res://demo_test_scene_manager/test_scene_2.tscn";
+    private const string MAIN_SCENE_PATH = "res://demo_test_scene_manager/main_scene.tscn";
+    private const string TEST_SCENE_2_PATH = "res://demo_test_scene_manager/test_scene_2.tscn";
 
-	private Button buttonMain;
-	private Button buttonScene2;
-	private Button buttonBack;
-	private Label labelInfo;
+    private Button _buttonMain;
+    private Button _buttonScene2;
+    private Button _buttonBack;
+    private Label _labelInfo;
 
-	private bool isFirstEnter = true;
+    private bool _isFirstEnter = true;
 
-	public override void _Ready()
-	{
-		GD.Print("=== Test Scene 1 Loaded (C#) 测试场景1加载完成 (C#) ===");
+    public override void _Ready()
+    {
+        GD.Print("=== Test Scene 1 Loaded (C#) 测试场景1加载完成 (C#) ===");
 
-		// Get node references (consistent with GDScript paths) 获取节点引用（与GDScript路径一致）
-		buttonMain = GetNode<Button>("MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/Button_Main");
-		buttonScene2 = GetNode<Button>("MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/Button_Scene2");
-		buttonBack = GetNode<Button>("MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/Button_Back");
-		labelInfo = GetNode<Label>("MarginContainer/VBoxContainer/HBoxContainer/Label_Info");
+        _buttonMain = GetNode<Button>("MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/Button_Main");
+        _buttonScene2 = GetNode<Button>("MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/Button_Scene2");
+        _buttonBack = GetNode<Button>("MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/Button_Back");
+        _labelInfo = GetNode<Label>("MarginContainer/VBoxContainer/HBoxContainer/Label_Info");
 
-		// Connect button signals 连接按钮信号
-		buttonMain.Pressed += OnMainPressed;
-		buttonScene2.Pressed += OnScene2Pressed;
-		buttonBack.Pressed += OnBackPressed;
+        _buttonMain.Pressed += OnMainPressed;
+        _buttonScene2.Pressed += OnScene2Pressed;
+        _buttonBack.Pressed += OnBackPressed;
 
-		// Update info label 更新信息标签
-		UpdateInfoLabel();
-		isFirstEnter = false;
+        UpdateInfoLabel();
+        _isFirstEnter = false;
 
-		// Connect SceneManager signals 连接SceneManager信号
-		var manager = (LongSceneManagerCs.LongSceneManagerCs)GetNode("/root/LongSceneManagerCs");
-		manager.SceneSwitchStarted += OnSceneSwitchStarted;
-		manager.SceneSwitchCompleted += OnSceneSwitchCompleted;
-	}
+        LongSceneManagerCs.Instance.SceneSwitchStarted += OnSceneSwitchStarted;
+        LongSceneManagerCs.Instance.SceneSwitchCompleted += OnSceneSwitchCompleted;
+    }
 
-	public override void _EnterTree()
-	{
-		if (!isFirstEnter)
-		{
-			UpdateInfoLabel();
-		}
-	}
+    public override void _EnterTree()
+    {
+        if (!_isFirstEnter)
+        {
+            UpdateInfoLabel();
+        }
+    }
 
-	public override void _Process(double delta)
-	{
-		UpdateInfoLabel();
-	}
+    public override void _Process(double delta)
+    {
+        UpdateInfoLabel();
+    }
 
-	private void UpdateInfoLabel()
-	{
-		var manager = (LongSceneManagerCs.LongSceneManagerCs)GetNode("/root/LongSceneManagerCs");
-		var cacheInfo = manager.GetCacheInfo();
+    private void UpdateInfoLabel()
+    {
+        var cacheInfo = LongSceneManagerCs.Instance.GetCacheInfo();
 
-		// Get nested dictionaries 获取嵌套字典
-		var instanceCache = (Godot.Collections.Dictionary)cacheInfo["instance_cache"];
-		var preloadCache = (Godot.Collections.Dictionary)cacheInfo["preload_cache"];
+        var instanceCache = (Godot.Collections.Dictionary)cacheInfo["instance_cache"];
+        var tempPreloadCache = (Godot.Collections.Dictionary)cacheInfo["temp_preload_cache"];
+        var fixedPreloadCache = (Godot.Collections.Dictionary)cacheInfo["fixed_preload_cache"];
+        var preloadStates = (Godot.Collections.Dictionary)cacheInfo["preload_states"];
 
-		// Process instance scene cache list 处理实例化场景缓存列表
-		var cachedScenes = (Godot.Collections.Array<Godot.Collections.Dictionary>)instanceCache["scenes"];
-		var instancePaths = new System.Collections.Generic.List<string>();
-		foreach (var s in cachedScenes)
-		{
-			instancePaths.Add((string)s["path"]);
-		}
-		var instanceList = instancePaths.Count > 0 ? string.Join("\n", instancePaths) : "（empty）";
+        var cachedScenes = (Godot.Collections.Array<Godot.Collections.Dictionary>)instanceCache["scenes"];
+        var instancePaths = new System.Collections.Generic.List<string>();
+        foreach (var s in cachedScenes)
+        {
+            instancePaths.Add((string)s["path"]);
+        }
+        var instanceList = instancePaths.Count > 0 ? string.Join("\n", instancePaths) : "（empty）";
 
-		// Process preload resource cache list 处理预加载资源缓存列表
-		var preloadPaths = (Godot.Collections.Array<string>)preloadCache["scenes"];
-		var preloadList = preloadPaths.Count > 0 ? string.Join("\n", preloadPaths) : "（empty）";
+        var tempScenes = (Godot.Collections.Array<string>)tempPreloadCache["scenes"];
+        var tempList = tempScenes.Count > 0 ? string.Join("\n", tempScenes) : "（empty）";
 
-		labelInfo.Text = string.Format(@"
-Current Scene: {0}
-Previous Scene: {1}
+        var fixedScenes = (Godot.Collections.Array<string>)fixedPreloadCache["scenes"];
+        var fixedList = fixedScenes.Count > 0 ? string.Join("\n", fixedScenes) : "（empty）";
 
-[Instance Scene Cache] Count: {2}/{3}
+        var states = (Godot.Collections.Array<Godot.Collections.Dictionary>)preloadStates["states"];
+        var statesList = new System.Collections.Generic.List<string>();
+        foreach (var s in states)
+        {
+            statesList.Add($"{s["path"]} [{(int)s["state"]}]");
+        }
+        var preloadStatesStr = statesList.Count > 0 ? string.Join("\n", statesList) : "（empty）";
+
+        _labelInfo.Text = $@"
+Current Scene: {(string)cacheInfo["current_scene"]}
+Previous Scene: {(string)cacheInfo["previous_scene"]}
+
+[Instance Scene Cache] Count: {instanceCache["size"]}/{instanceCache["max_size"]}
 Scene List:
-{4}
+{instanceList}
 
-[Preloaded Resource Cache] Count: {5}/{6}
+[Temporary Preload Cache] Count: {tempPreloadCache["size"]}/{tempPreloadCache["max_size"]}
 Resource List:
-{7}
-",
-			cacheInfo["current_scene"],
-			cacheInfo["previous_scene"],
-			instanceCache["size"],
-			instanceCache["max_size"],
-			instanceList,
-			preloadCache["size"],
-			preloadCache["max_size"],
-			preloadList);
-	}
+{tempList}
 
-	private void OnMainPressed()
-	{
-		// Switch back to main scene 切换回主场景
-		GD.Print("Switch back to main scene (C#) 切换回主场景 (C#)");
-		var manager = (LongSceneManagerCs.LongSceneManagerCs)GetNode("/root/LongSceneManagerCs");
-		manager.SwitchSceneGD(MAIN_SCENE_PATH, true, "");
-	}
+[Fixed Preload Cache] Count: {fixedPreloadCache["size"]}/{fixedPreloadCache["max_size"]}
+Resource List:
+{fixedList}
 
-	private void OnScene2Pressed()
-	{
-		// Switch to scene 2 切换到场景2
-		GD.Print("Switch to scene 2 (C#) 切换到场景2 (C#)");
-		var manager = (LongSceneManagerCs.LongSceneManagerCs)GetNode("/root/LongSceneManagerCs");
-		manager.SwitchSceneGD(TEST_SCENE_2_PATH, true, "");
-	}
+[Preload States] Count: {preloadStates["size"]}
+States:
+{preloadStatesStr}
+";
+    }
 
-	private void OnBackPressed()
-	{
-		// Back button (special test: no transition effect) 返回按钮（特殊测试：无过渡效果）
-		GD.Print("Back to main scene (no transition) (C#) 返回主场景（无过渡效果）(C#)");
-		var manager = (LongSceneManagerCs.LongSceneManagerCs)GetNode("/root/LongSceneManagerCs");
-		manager.SwitchSceneGD(MAIN_SCENE_PATH, true, "no_transition");
-	}
+    private void OnMainPressed()
+    {
+        GD.Print("Switch back to main scene 切换回主场景");
+        LongSceneManagerCs.Instance.SwitchScene(MAIN_SCENE_PATH, LongSceneManagerCs.LoadMethod.BothPreloadFirst, true, "");
+    }
 
-	private void OnSceneSwitchStarted(string fromScene, string toScene)
-	{
-		GD.Print($"Scene 1 - switch started (C#) 场景1 - 切换开始 (C#): {fromScene} -> {toScene}");
-	}
+    private void OnScene2Pressed()
+    {
+        GD.Print("Switch to scene 2 切换到场景2");
+        LongSceneManagerCs.Instance.SwitchScene(TEST_SCENE_2_PATH, LongSceneManagerCs.LoadMethod.BothPreloadFirst, true, "");
+    }
 
-	private void OnSceneSwitchCompleted(string scenePath)
-	{
-		GD.Print($"Scene 1 - switch completed (C#) 场景1 - 切换完成 (C#): {scenePath}");
-	}
+    private void OnBackPressed()
+    {
+        GD.Print("Back to main scene (no transition) 返回主场景（无过渡效果）");
+        LongSceneManagerCs.Instance.SwitchScene(MAIN_SCENE_PATH, LongSceneManagerCs.LoadMethod.BothPreloadFirst, true, "no_transition");
+    }
+
+    private void OnSceneSwitchStarted(string fromScene, string toScene)
+    {
+        GD.Print($"Scene 1 - switch started (C#) 场景1 - 切换开始 (C#): {fromScene} -> {toScene}");
+    }
+
+    private void OnSceneSwitchCompleted(string scenePath)
+    {
+        GD.Print($"Scene 1 - switch completed (C#) 场景1 - 切换完成 (C#): {scenePath}");
+    }
 }

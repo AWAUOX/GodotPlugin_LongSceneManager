@@ -54,6 +54,11 @@ public partial class MainScene : Control
 
 	private void UpdateInfoLabel()
 	{
+		if (!GodotObject.IsInstanceValid(this) || !IsInsideTree() || _labelInfo == null || !GodotObject.IsInstanceValid(_labelInfo))
+		{
+			return;
+		}
+
 		var cacheInfo = LongSceneManagerCs.Instance.GetCacheInfo();
 
 		var instanceCacheDict = (Godot.Collections.Dictionary)cacheInfo["instance_cache"];
@@ -149,6 +154,10 @@ States:
 	private void OnSceneCached(string scenePath)
 	{
 		GD.Print($"Main - scene cached 主场景 - 场景已缓存: {scenePath}");
+		if (!GodotObject.IsInstanceValid(this) || !IsInsideTree() || _labelInfo == null || !GodotObject.IsInstanceValid(_labelInfo))
+		{
+			return;
+		}
 		UpdateInfoLabel();
 	}
 }

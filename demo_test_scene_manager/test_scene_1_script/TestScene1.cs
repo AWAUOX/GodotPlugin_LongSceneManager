@@ -47,6 +47,11 @@ public partial class TestScene1 : Node2D
 
 	private void UpdateInfoLabel()
 	{
+		if (!GodotObject.IsInstanceValid(this) || !IsInsideTree() || _labelInfo == null || !GodotObject.IsInstanceValid(_labelInfo))
+		{
+			return;
+		}
+
 		var cacheInfo = LongSceneManagerCs.Instance.GetCacheInfo();
 
 		var instanceCacheDict = (Godot.Collections.Dictionary)cacheInfo["instance_cache"];

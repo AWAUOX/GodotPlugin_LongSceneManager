@@ -138,6 +138,13 @@ public partial class TestScene2 : Control
 
 	public override void _Process(double delta)
 	{
+		if (!GodotObject.IsInstanceValid(this) || !IsInsideTree() || _progressBarPreloadScene3 == null || !GodotObject.IsInstanceValid(_progressBarPreloadScene3) ||
+			_progressBarPreloadScene4 == null || !GodotObject.IsInstanceValid(_progressBarPreloadScene4) ||
+			_progressBarPreloadScene5 == null || !GodotObject.IsInstanceValid(_progressBarPreloadScene5))
+		{
+			return;
+		}
+
 		UpdateInfo();
 
 		float scene3Progress = LongSceneManagerCs.Instance.GetLoadingProgress(TEST_SCENE_3_PATH);
@@ -186,6 +193,14 @@ public partial class TestScene2 : Control
 
 	private void UpdateInfo()
 	{
+		if (!GodotObject.IsInstanceValid(this) || !IsInsideTree() || _labelInfo == null || !GodotObject.IsInstanceValid(_labelInfo) ||
+			_progressBarPreloadScene3 == null || !GodotObject.IsInstanceValid(_progressBarPreloadScene3) ||
+			_progressBarPreloadScene4 == null || !GodotObject.IsInstanceValid(_progressBarPreloadScene4) ||
+			_progressBarPreloadScene5 == null || !GodotObject.IsInstanceValid(_progressBarPreloadScene5))
+		{
+			return;
+		}
+
 		_progressBarPreloadScene3.Value = 0;
 		_progressBarPreloadScene4.Value = 0;
 		_progressBarPreloadScene5.Value = 0;

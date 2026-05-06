@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://dlbvo51yl80p"]
 
-[ext_resource type="Script" uid="uid://c8h75eevgrcfk" path="res://demo_test_scene_manager/main_scene_script/main_scene_gd.gd" id="1_7t0ds"]
+[ext_resource type="Script" uid="uid://ud1gh1xllsa6" path="res://demo_test_scene_manager/main_scene_script/MainScene.cs" id="1_7t0ds"]
 
-[node name="MainScene" type="Control" unique_id=1578206906]
+[node name="MainScene" type="Control" unique_id=1578206906 node_paths=PackedStringArray("_buttonScene1", "_buttonScene2", "_buttonPreload1", "_buttonPreload2", "_buttonClearCache", "_labelInfo")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -10,6 +10,12 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_7t0ds")
+_buttonScene1 = NodePath("MarginContainer/VBoxContainer/HBoxContainer2/HBoxContainer/Button_Scene1")
+_buttonScene2 = NodePath("MarginContainer/VBoxContainer/HBoxContainer2/HBoxContainer/Button_Scene2")
+_buttonPreload1 = NodePath("MarginContainer/VBoxContainer/HBoxContainer2/HBoxContainer/Button_Preload1")
+_buttonPreload2 = NodePath("MarginContainer/VBoxContainer/HBoxContainer2/HBoxContainer/Button_Preload2")
+_buttonClearCache = NodePath("MarginContainer/VBoxContainer/HBoxContainer2/HBoxContainer/Button_ClearCache")
+_labelInfo = NodePath("MarginContainer/VBoxContainer/HBoxContainer2/ScrollContainer/VBoxContainer/Label_Info")
 
 [node name="MarginContainer" type="MarginContainer" parent="." unique_id=2011529715]
 layout_mode = 1

@@ -1,9 +1,13 @@
 [gd_scene format=3 uid="uid://mbi1fk1dvsti"]
 
-[ext_resource type="Script" uid="uid://gyv3lcrn2nm6" path="res://demo_test_scene_manager/test_scene_1_script/test_scene_1_gd.gd" id="1_xftt1"]
+[ext_resource type="Script" uid="uid://bdb4l42mw87a1" path="res://demo_test_scene_manager/test_scene_1_script/TestScene1.cs" id="1_xftt1"]
 
-[node name="TestScene1" type="Node2D" unique_id=1793970330]
+[node name="TestScene1" type="Node2D" unique_id=1793970330 node_paths=PackedStringArray("_buttonMain", "_buttonScene2", "_buttonBack", "_labelInfo")]
 script = ExtResource("1_xftt1")
+_buttonMain = NodePath("MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/Button_Main")
+_buttonScene2 = NodePath("MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/Button_Scene2")
+_buttonBack = NodePath("MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/Button_Back")
+_labelInfo = NodePath("MarginContainer/VBoxContainer/HBoxContainer/Label_Info")
 
 [node name="TextureRect" type="ColorRect" parent="." unique_id=876650481]
 offset_right = 1281.0

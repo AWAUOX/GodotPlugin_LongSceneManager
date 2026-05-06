@@ -216,7 +216,7 @@ public partial class LongSceneManagerCs : Node
 		GD.Print($"[SceneManager] Initialization complete, max cache: {_maxCacheSize}");
 	}
 
-	public async Task SwitchScene(string newScenePath, LoadMethod loadMethod = LoadMethod.BothPreloadFirst, bool cacheCurrentScene = true, string loadScreenPath = "")
+	public async Task SwitchScene(string newScenePath, object loadMethod = null, bool cacheCurrentScene = true, string loadScreenPath = "")
 	{
 		if (_isSwitching)
 		{
@@ -1223,13 +1223,26 @@ public partial class LongSceneManagerCs : Node
 		}
 	}
 
-	private async Task LoadSceneByMethod(string scenePath, LoadMethod loadMethod, bool cacheCurrentScene, Node loadScreenInstance)
+	private async Task LoadSceneByMethod(string scenePath, object loadMethod, bool cacheCurrentScene, Node loadScreenInstance)
 	{
 		await ShowLoadScreen(loadScreenInstance);
 
-		switch (loadMethod)
+		int methodIndex = loadMethod switch
 		{
-			case LoadMethod.Direct:
+			null => (int)LoadMethod.BothPreloadFirst,
+			LoadMethod lm => (int)lm,
+			int i => i,
+			string s when s.ToUpper() == "DIRECT" => 0,
+			string s when s.ToUpper() == "PRELOAD_CACHE" => 1,
+			string s when s.ToUpper() == "SCENE_CACHE" => 2,
+			string s when s.ToUpper() == "BOTH_PRELOAD_FIRST" => 3,
+			string s when s.ToUpper() == "BOTH_INSTANCE_FIRST" => 4,
+			_ => -1
+		};
+
+		switch (methodIndex)
+		{
+			case 0:
 				if (_tempPreloadedResourceCache.ContainsKey(scenePath) || _fixedPreloadResourceCache.ContainsKey(scenePath))
 				{
 					GD.Print("[SceneManager] DIRECT: resource found in preload cache, using preloaded resource");
@@ -1242,7 +1255,7 @@ public partial class LongSceneManagerCs : Node
 				}
 				break;
 
-			case LoadMethod.PreloadCache:
+			case 1:
 				if (_tempPreloadedResourceCache.ContainsKey(scenePath) || _fixedPreloadResourceCache.ContainsKey(scenePath))
 				{
 					await HandlePreloadedResource(scenePath, loadScreenInstance, cacheCurrentScene);
@@ -1254,7 +1267,7 @@ public partial class LongSceneManagerCs : Node
 				}
 				break;
 
-			case LoadMethod.SceneCache:
+			case 2:
 				if (_instantiateSceneCache.ContainsKey(scenePath))
 				{
 					await HandleCachedScene(scenePath, loadScreenInstance, cacheCurrentScene);
@@ -1266,7 +1279,7 @@ public partial class LongSceneManagerCs : Node
 				}
 				break;
 
-			case LoadMethod.BothPreloadFirst:
+			case 3:
 				if (_tempPreloadedResourceCache.ContainsKey(scenePath) || _fixedPreloadResourceCache.ContainsKey(scenePath))
 				{
 					await HandlePreloadedResource(scenePath, loadScreenInstance, cacheCurrentScene);
@@ -1281,7 +1294,7 @@ public partial class LongSceneManagerCs : Node
 				}
 				break;
 
-			case LoadMethod.BothInstanceFirst:
+			case 4:
 				if (_instantiateSceneCache.ContainsKey(scenePath))
 				{
 					await HandleCachedScene(scenePath, loadScreenInstance, cacheCurrentScene);

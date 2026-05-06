@@ -225,7 +225,7 @@ func _on_switch_scene_4_with_preload_pressed():
 func _on_switch_scene_4_direct_pressed():
 	# Direct load scene 4 (no preload) 直接加载场景4（不预加载）
 	print("Direct load scene 4 直接加载场景4")
-	await LongSceneManager.switch_scene(TEST_SCENE_4_PATH, LongSceneManager.LoadMethod.DIRECT, true, CUSTOM_LOADING_SCENE)
+	await LongSceneManager.switch_scene(TEST_SCENE_4_PATH, "DIRECT", true, CUSTOM_LOADING_SCENE)
 
 # ============== New scene5 switch functions ============== 新增scene5切换函数 ==============
 func _on_switch_scene_5_with_preload_pressed():

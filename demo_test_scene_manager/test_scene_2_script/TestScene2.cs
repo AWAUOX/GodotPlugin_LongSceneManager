@@ -317,13 +317,13 @@ States:
 	private async void OnSwitchScene5WithPreloadPressed()
 	{
 		GD.Print("Switch scene 5 with preload 使用预加载切换场景5");
-		await LongSceneManagerCs.Instance.SwitchScene(TEST_SCENE_5_PATH, LongSceneManagerCs.LoadMethod.BothPreloadFirst, true, "");
+		await LongSceneManagerCs.Instance.SwitchScene(TEST_SCENE_5_PATH, 3, true, "");
 	}
 
 	private async void OnSwitchScene5DirectPressed()
 	{
 		GD.Print("Direct load scene 5 直接加载场景5");
-		await LongSceneManagerCs.Instance.SwitchScene(TEST_SCENE_5_PATH, LongSceneManagerCs.LoadMethod.Direct, true, CUSTOM_LOADING_SCENE);
+		await LongSceneManagerCs.Instance.SwitchScene(TEST_SCENE_5_PATH, "Direct", true, CUSTOM_LOADING_SCENE);
 	}
 
 	private void OnSceneSwitchStarted(string fromScene, string toScene)

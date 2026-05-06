@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://d2enyga3f20ol"]
 
-[ext_resource type="Script" uid="uid://df1qrwtsmgggu" path="res://demo_test_scene_manager/test_scene_2_script/TestScene2.cs" id="1_w6x54"]
+[ext_resource type="Script" uid="uid://w6elvtc2gfuv" path="res://demo_test_scene_manager/test_scene_2_script/test_scene2.gd" id="1_w6x54"]
 
-[node name="TestScene2" type="Control" unique_id=1464101186 node_paths=PackedStringArray("_buttonMain", "_buttonScene1", "_preloadAll", "_cancelAllPreload", "_cancelPreloadScene3", "_buttonPreloadScene3", "_buttonSwitchScene3WithPreload", "_buttonSwitchScene3Direct", "_buttonRemovePreloadScene3", "_buttonRemoveCachedScene3", "_buttonPreloadScene4", "_buttonSwitchScene4WithPreload", "_buttonSwitchScene4Direct", "_buttonRemovePreloadScene4", "_buttonRemoveCachedScene4", "_buttonPreloadScene5", "_buttonSwitchScene5WithPreload", "_buttonSwitchScene5Direct", "_buttonRemovePreloadScene5", "_buttonRemoveCachedScene5", "_loadScene3WithSceneCache", "_loadScene4WithSceneCache", "_loadScene5WithSceneCache", "_sceneToTemp", "_sceneTofixed", "_clearTempCache", "_clearfixedCache", "_clearinstanceCache", "_removeTempResource4", "_removeFixResource4", "_removeCachedScene4", "_labelInfo", "_progressBarPreloadScene3", "_progressBarPreloadScene4", "_progressBarPreloadScene5")]
+[node name="TestScene2" type="Control" unique_id=1464101186]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -10,41 +10,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_w6x54")
-_buttonMain = NodePath("VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer/Button_Main")
-_buttonScene1 = NodePath("VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer/Button_Scene1")
-_preloadAll = NodePath("VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer/PreloadAll")
-_cancelAllPreload = NodePath("VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer/CancelAllPreload")
-_cancelPreloadScene3 = NodePath("VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer/CancelPreloadScene3")
-_buttonPreloadScene3 = NodePath("VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer/Button_PreloadScene3")
-_buttonSwitchScene3WithPreload = NodePath("VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer/Button_SwitchScene3WithPreload")
-_buttonSwitchScene3Direct = NodePath("VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer/Button_SwitchScene3Direct")
-_buttonRemovePreloadScene3 = NodePath("VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer/RemoveScene3Resource")
-_buttonRemoveCachedScene3 = NodePath("VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer/RemoveScene3Instance")
-_buttonPreloadScene4 = NodePath("VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer/Button_PreloadScene4")
-_buttonSwitchScene4WithPreload = NodePath("VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer/Button_SwitchScene4WithPreload")
-_buttonSwitchScene4Direct = NodePath("VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer/Button_SwitchScene4Direct")
-_buttonRemovePreloadScene4 = NodePath("VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer/RemoveScene4Resource")
-_buttonRemoveCachedScene4 = NodePath("VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer/RemoveScene4Instance")
-_buttonPreloadScene5 = NodePath("VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer/Button_PreloadScene5")
-_buttonSwitchScene5WithPreload = NodePath("VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer/Button_SwitchScene5WithPreload")
-_buttonSwitchScene5Direct = NodePath("VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer/Button_SwitchScene5Direct")
-_buttonRemovePreloadScene5 = NodePath("VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer/RemoveScene5Resource")
-_buttonRemoveCachedScene5 = NodePath("VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer/RemoveScene5Instance")
-_loadScene3WithSceneCache = NodePath("VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer/LoadScene3WithSceneCache")
-_loadScene4WithSceneCache = NodePath("VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer/LoadScene4WithSceneCache")
-_loadScene5WithSceneCache = NodePath("VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/GridContainer/LoadScene5WithSceneCache")
-_sceneToTemp = NodePath("VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer/ScenetoTemp")
-_sceneTofixed = NodePath("VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer/Scenetofixed")
-_clearTempCache = NodePath("VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer/ClearTempCache")
-_clearfixedCache = NodePath("VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer/ClearfixedCache")
-_clearinstanceCache = NodePath("VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer/ClearinstanceCache")
-_removeTempResource4 = NodePath("VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer/remove_temp_resource4")
-_removeFixResource4 = NodePath("VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer/remove_fix_resource4")
-_removeCachedScene4 = NodePath("VBoxContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer/remove_cached_scene4")
-_labelInfo = NodePath("VBoxContainer/HBoxContainer/VBoxContainer2/ScrollContainer/Label_Info")
-_progressBarPreloadScene3 = NodePath("VBoxContainer/MarginContainer/VBoxContainer/scene3/ProgressBar_PreloadScene3")
-_progressBarPreloadScene4 = NodePath("VBoxContainer/MarginContainer/VBoxContainer/scene4/ProgressBar_PreloadScene4")
-_progressBarPreloadScene5 = NodePath("VBoxContainer/MarginContainer/VBoxContainer/scene5/ProgressBar_PreloadScene5")
 
 [node name="TextureRect" type="ColorRect" parent="." unique_id=249932131]
 layout_mode = 1

@@ -97,7 +97,7 @@ func _ready():
 # ==================== Public API - Scene Switching ====================
 # ==================== 公开API - 场景切换 ====================
 
-func switch_scene(new_scene_path: String, load_method: LoadMethod = LoadMethod.BOTH_PRELOAD_FIRST, cache_current_scene: bool = true, load_screen_path: String = "") -> void:
+func switch_scene(new_scene_path: String, load_method = LoadMethod.BOTH_PRELOAD_FIRST, cache_current_scene: bool = true, load_screen_path: String = "") -> void:
 	if _is_switching:
 		push_warning("[SceneManager] Warning: Scene switch already in progress, ignoring request to: ", new_scene_path)
 		return
@@ -830,7 +830,7 @@ func _hide_load_screen(load_screen_instance: Node) -> void:
 # ==================== Private Functions - Scene Loading ====================
 # ==================== 私有函数 - 场景加载 ====================
 
-func _load_scene_by_method(scene_path: String, load_method: LoadMethod, cache_current_scene: bool, load_screen_instance: Node) -> void:
+func _load_scene_by_method(scene_path: String, load_method, cache_current_scene: bool, load_screen_instance: Node) -> void:
 	await _show_load_screen(load_screen_instance)
 
 	match load_method:

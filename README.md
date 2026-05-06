@@ -37,7 +37,6 @@ Your support is my motivation to keep improving!
   - [Support the Developer](#support-the-developer)
   - [Table of Contents](#table-of-contents)
   - [Plugin Overview](#plugin-overview)
-    - [Why Do You Need This Plugin?](#why-do-you-need-this-plugin)
     - [Core Features](#core-features)
   - [Basic Usage](#basic-usage)
     - [Installation and Setup](#installation-and-setup)
@@ -84,16 +83,6 @@ Your support is my motivation to keep improving!
 
 ## Plugin Overview
 
-### Why Do You Need This Plugin?
-
-Godot engine's built-in `change_scene_to_file()` and `preload()` have the following issues in certain cases:
-
-| Issue | Description |
-|------|-------------|
-| **Blocking Main Thread** | Large scene loading may affect game smoothness and cause stuttering |
-| **Lack of Cache Management** | No built-in LRU/FIFO cache eviction strategy; switching back requires reloading |
-| **No Loading Screen Support** | Cannot conveniently display custom loading screens and progress bars |
-| **Memory Waste** | Cannot flexibly control which scenes stay in memory and which should be released |
 
 ### Core Features
 
